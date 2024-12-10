@@ -1,0 +1,99 @@
+﻿@page "/"
+<PageTitle>App</PageTitle>
+@rendermode InteractiveServer
+
+@using Cairo
+@using System.Drawing
+@using System.Drawing.Imaging
+
+@inject IJSRuntime JSRuntime
+
+@code {
+    private ElementReference imageContainer;
+    private int imgWidth = 300;
+    private int imgHeight = 400;
+    private byte[] imgBytes = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderCairoDrawing();
+        }
+    }
+
+    private async Task RenderCairoDrawing()
+    {
+        using (var surface = new ImageSurface(Format.Argb32, imgWidth, imgHeight))
+        using (var context = new Context(surface))
+        {
+            // Background
+            context.SetSourceRGB(0.5, 0.75, 0.7);
+            // context.SetSourceRGBA(0.5, 0.75, 0.7, 0.5);
+            context.Paint();
+
+            // Line
+            context.SetSourceRGB(0, 0, 0);
+            context.LineWidth = 3;
+            context.MoveTo(50, 50);
+            context.LineTo(250, 350);
+            context.LineTo(150, 250);
+            context.LineTo(175, 150);
+            context.LineTo(250, 350);
+            context.Stroke();
+
+            // Circle
+            context.SetSourceRGB(1, 0, 0);
+            context.Arc(imgWidth / 2, imgHeight / 2, 100, 0, Math.Tau);
+            context.Stroke();
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ConvertByteArrayToImage(surface.Data, imgWidth, imgHeight).Save(ms, ImageFormat.Png);
+                imgBytes = ms.ToArray();
+                string base64Image = Convert.ToBase64String(ms.ToArray());
+
+                await JSRuntime.InvokeVoidAsync("displayBase64Image", imageContainer, $"data:image/png;base64,{base64Image}");
+            }
+        }
+    }
+
+    public static Image ConvertByteArrayToImage(byte[] byteArray, int width, int height)
+    {
+        Bitmap bitmap = new Bitmap(width, height);
+
+        // Lock the bitmap's bits for performance reasons
+        BitmapData bmpData = bitmap.LockBits(
+            new System.Drawing.Rectangle(0, 0, width, height),
+            ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb
+        );
+
+        System.Runtime.InteropServices.Marshal.Copy(byteArray, 0, bmpData.Scan0, byteArray.Length); // Copy the byte array to the bitmap's data
+
+        bitmap.UnlockBits(bmpData);
+
+        return bitmap;
+    }
+
+    private async Task DownloadToFile()
+    {
+        if (imgBytes != null)
+        {
+            await JSRuntime.InvokeVoidAsync(
+                "downloadFileFromStream",
+                $"TestImage {imgWidth}x{imgHeight}.png",
+                new DotNetStreamReference(new MemoryStream(imgBytes))
+            );
+        }
+    }
+}
+
+<h1>Hello, image!</h1>
+
+<div @ref="imageContainer" />
+<form @onsubmit="RenderCairoDrawing">
+    <input @bind="imgWidth" />
+    <input @bind="imgHeight" />
+    <button>Re-Render</button>
+</form>
+<button @onclick="DownloadToFile">Download</button>
