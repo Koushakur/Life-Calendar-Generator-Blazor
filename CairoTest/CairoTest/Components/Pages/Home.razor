@@ -2,9 +2,14 @@
 <PageTitle>App</PageTitle>
 @rendermode InteractiveServer
 
-@using Cairo
+@* @using Cairo *@
 @using System.Drawing
 @using System.Drawing.Imaging
+@using SkiaSharp
+@using System;
+@using System.IO
+@using System.Xml.Linq
+@using System.ComponentModel
 
 @inject IJSRuntime JSRuntime
 
@@ -18,44 +23,108 @@
     {
         if (firstRender)
         {
-            await RenderCairoDrawing();
+            // await RenderCairoDrawing();
+            await RenderSkiaDrawing();
+        }
+    }
+
+    private async Task RenderSkiaDrawing()
+    {
+        var memStream = new MemoryStream();
+
+        using (var wstream = new SKManagedWStream(memStream))
+        using (StreamWriter writer = new StreamWriter(wstream.))
+        using (SKPaint paint = new SKPaint
+            {
+                Color = SKColors.Blue,
+                IsAntialias = true,
+                StrokeWidth = 3,
+                Style = SKPaintStyle.Stroke
+            })
+        using (SKSurface surface = SKSurface.Create(new SKImageInfo(imgWidth, imgHeight)))
+        {
+            // var canvas = surface.Canvas;
+            var canvas = SKSvgCanvas.Create(new SKRect(0, imgWidth, 0, imgHeight), memStream);
+
+
+            canvas.DrawColor(SKColors.Pink);
+
+            canvas.DrawCircle(50, 50, 10, paint);
+            paint.Color = SKColors.Red;
+            canvas.DrawCircle(150, 50, 10, paint);
+            paint.Color = SKColors.Green;
+            canvas.DrawCircle(250, 50, 10, paint);
+
+
+            memStream.Position = 0;
+            using (var reader = new StreamReader(memStream))
+            {
+                var xml = reader.ReadToEnd();
+                var xdoc = XDocument.Parse(xml);
+
+                var s = xdoc.Root;
+                // var nameS = s!.Name.Namespace;
+                await DownloadToFile(memStream);
+                // await JSRuntime.InvokeVoidAsync("displayBase64Image", imageContainer, $"data:image/svg;base64,{base64Image}");
+            }
+
+            // using (SKImage image = surface.Snapshot())
+            // using (SKData data = image.Encode(SKEncodedImageFormat.Png, 100))
+            // using (MemoryStream ms = new MemoryStream(data.ToArray()))
+            // {
+            //     string base64Image = Convert.ToBase64String(ms.ToArray());
+            //     imgBytes = ms.ToArray();
+            //     await JSRuntime.InvokeVoidAsync("displayBase64Image", imageContainer, $"data:image/png;base64,{base64Image}");
+            // }
+
+            // using (MemoryStream ms = new MemoryStream())
+            // {
+            // ConvertByteArrayToImage(surface.Data, imgWidth, imgHeight).Save(ms, ImageFormat.Png);
+            //     imgBytes = ms.ToArray();
+            //     string base64Image = Convert.ToBase64String(ms.ToArray());
+
+            //     await JSRuntime.InvokeVoidAsync("displayBase64Image", imageContainer, $"data:image/png;base64,{base64Image}");
+            // }
         }
     }
 
     private async Task RenderCairoDrawing()
     {
-        using (var surface = new ImageSurface(Format.Argb32, imgWidth, imgHeight))
-        using (var context = new Context(surface))
-        {
-            // Background
-            context.SetSourceRGB(0.5, 0.75, 0.7);
-            // context.SetSourceRGBA(0.5, 0.75, 0.7, 0.5);
-            context.Paint();
+        // using (var surface = new SvgSurface(null, imgWidth, imgHeight))
+        // using (var surface = new ImageSurface(Format.Argb32, imgWidth, imgHeight))
+        // using (var context = new Context(surface))
+        // {
+        //     Background
+        //     context.SetSourceRGB(0.5, 0.75, 0.7);
+        //     context.SetSourceRGBA(0.5, 0.75, 0.7, 0.5);
+        //     context.Paint();
 
-            // Line
-            context.SetSourceRGB(0, 0, 0);
-            context.LineWidth = 3;
-            context.MoveTo(50, 50);
-            context.LineTo(250, 350);
-            context.LineTo(150, 250);
-            context.LineTo(175, 150);
-            context.LineTo(250, 350);
-            context.Stroke();
+        //     Line
+        //     context.SetSourceRGB(0, 0, 0);
+        //     context.LineWidth = 3;
+        //     context.MoveTo(50, 50);
+        //     context.LineTo(250, 350);
+        //     context.LineTo(150, 250);
+        //     context.LineTo(175, 150);
+        //     context.LineTo(250, 350);
+        //     context.Stroke();
 
-            // Circle
-            context.SetSourceRGB(1, 0, 0);
-            context.Arc(imgWidth / 2, imgHeight / 2, 100, 0, Math.Tau);
-            context.Stroke();
+        //     Circle
+        //     context.SetSourceRGB(1, 0, 0);
+        //     context.Arc(imgWidth / 2, imgHeight / 2, 100, 0, Math.Tau);
+        //     context.Stroke();
 
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ConvertByteArrayToImage(surface.Data, imgWidth, imgHeight).Save(ms, ImageFormat.Png);
-                imgBytes = ms.ToArray();
-                string base64Image = Convert.ToBase64String(ms.ToArray());
+        //     surface.WriteToPng("testpdfthing.png");
 
-                await JSRuntime.InvokeVoidAsync("displayBase64Image", imageContainer, $"data:image/png;base64,{base64Image}");
-            }
-        }
+        //     using (MemoryStream ms = new MemoryStream())
+        //     {
+        //         ConvertByteArrayToImage(surface.Data, imgWidth, imgHeight).Save(ms, ImageFormat.Png);
+        //         imgBytes = ms.ToArray();
+        //         string base64Image = Convert.ToBase64String(ms.ToArray());
+
+        //         await JSRuntime.InvokeVoidAsync("displayBase64Image", imageContainer, $"data:image/png;base64,{base64Image}");
+        //     }
+        // }
     }
 
     public static Image ConvertByteArrayToImage(byte[] byteArray, int width, int height)
@@ -75,9 +144,17 @@
         return bitmap;
     }
 
-    private async Task DownloadToFile()
+    private async Task DownloadToFile(MemoryStream mStream = null!)
     {
-        if (imgBytes != null)
+        if (mStream != null)
+        {
+            await JSRuntime.InvokeVoidAsync(
+                "downloadFileFromStream",
+                $"TestImage {imgWidth}x{imgHeight}.svg",
+                new DotNetStreamReference(mStream)
+            );
+        }
+        else if (imgBytes != null)
         {
             await JSRuntime.InvokeVoidAsync(
                 "downloadFileFromStream",
@@ -90,8 +167,11 @@
 
 <h1>Hello, image!</h1>
 
-<div @ref="imageContainer" />
-<form @onsubmit="RenderCairoDrawing">
+<div @ref="imageContainer" class="imageContainer" />
+@* <canvas @ref="imageContainer" class="imageContainer" /> *@
+
+@* <form @onsubmit="RenderSkiaDrawing"> *@
+<form @onsubmit="RenderSkiaDrawing">
     <input @bind="imgWidth" />
     <input @bind="imgHeight" />
     <button>Re-Render</button>

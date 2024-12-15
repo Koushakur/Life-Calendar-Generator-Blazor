@@ -1,3 +1,9 @@
+.imageContainer > img {
+    max-width: 500px;
+    max-height: 500px;
+    object-fit: contain;
+}
+
 h1:focus {
     outline: none;
 }

@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using LifeCalendar.BlazorApp.Components
+@using LifeCalendar.BlazorApp.Components.Layout
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -12,8 +15,14 @@
 </head>
 
 <body>
+    <header>
+        <Header />
+    </header>
+
     <Routes />
+
     <script src="_framework/blazor.web.js"></script>
+    <script src="~/scripts.js"></script>
 </body>
 
 </html>
