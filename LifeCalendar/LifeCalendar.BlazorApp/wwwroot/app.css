@@ -1,4 +1,4 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 .container,
 .container-fluid,
 .container-xxl,
@@ -44,7 +44,12 @@ p {
   font-family: "Atkinson Hyperlegible", sans-serif;
 }
 
-a, h1, h2, h3, h4, h5 {
+a,
+h1,
+h2,
+h3,
+h4,
+h5 {
   font-family: "Work Sans", sans-serif;
 }
 
@@ -83,6 +88,30 @@ header .container {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
+  background-color: #e5eff3;
+}
+
+.container .main {
+  width: 100%;
+  display: flex;
+}
+.container .main .UI {
+  width: -moz-fit-content;
+  width: fit-content;
+  text-wrap: nowrap;
+  margin-right: 50px;
+}
+.container .main .imageContainer {
+  margin-left: auto;
+}
+.container .main .imageContainer img {
+  -o-object-fit: contain;
+     object-fit: contain;
+  max-width: 50vw;
+  max-height: 70vh;
+  outline: 1px solid black;
+  padding: 1px;
 }

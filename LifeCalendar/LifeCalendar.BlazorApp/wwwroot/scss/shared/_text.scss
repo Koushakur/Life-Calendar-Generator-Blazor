@@ -1,32 +1,37 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 p {
-    font-family: "Atkinson Hyperlegible", sans-serif;
+   font-family: "Atkinson Hyperlegible", sans-serif;
 }
 
-a, h1, h2, h3, h4, h5 {
-    font-family: "Work Sans", sans-serif;
+a,
+h1,
+h2,
+h3,
+h4,
+h5 {
+   font-family: "Work Sans", sans-serif;
 }
 
 a {
-    font-weight: 600;
+   font-weight: 600;
 }
 
 h1:focus {
-    outline: none;
+   outline: none;
 }
 
 .header-link {
-    color: black;
-    border-radius: 5px;
-    padding: 5px;
-    background-color: $color-background-light;
-    text-decoration: none;
+   color: black;
+   border-radius: 5px;
+   padding: 5px;
+   background-color: $color-header-button;
+   text-decoration: none;
 
-    @include transition((background-color, box-shadow));
+   @include transition((background-color, box-shadow));
 
-    &:hover {
-        background-color: darken($color-background-light, 7%);
-        box-shadow: 0 0 10px 0px darken($color-background, 30%);
-    }
+   &:hover {
+      background-color: darken($color-header-button, 7%);
+      box-shadow: 0 0 10px 0px darken($color-header-background, 30%);
+   }
 }

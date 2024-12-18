@@ -1,9 +1,9 @@
 ﻿header {
-    background-color: $color-background;
-    padding: 16px 0px;
+   background-color: $color-header-background;
+   padding: 16px 0px;
 
-    .container {
-        display: flex;
-        gap: 20px;
-    }
+   .container {
+      display: flex;
+      gap: 20px;
+   }
 }
