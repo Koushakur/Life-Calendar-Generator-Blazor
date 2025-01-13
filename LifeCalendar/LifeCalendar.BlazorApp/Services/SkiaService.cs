@@ -5,7 +5,7 @@ namespace LifeCalendar.BlazorApp.Services;
 public class SkiaService
 {
     public SKPaint defaultPaint;
-    private SKFont defaultFont;
+    public SKFont defaultFont;
 
     public SkiaService()
     {
@@ -29,6 +29,11 @@ public class SkiaService
         canvas.Clear(color);
     }
 
+    public void DrawRectangle(SKCanvas canvas, SKRect rect)
+    {
+        canvas.DrawRect(rect, defaultPaint);
+    }
+
     public void DrawCircleMatrix(
         SKCanvas canvas,
         SKRect rect,
@@ -39,23 +44,21 @@ public class SkiaService
     {
         paint ??= defaultPaint;
 
-        //This math does not give wanted result, check it
         var xSpacing = (rect.Width - radius * 2) / (columns - 1);
         var ySpacing = (rect.Height - radius * 2) / (rows - 1);
 
-        for (int i = 0; i < rows; i++)
+        for (int i = 0; i < columns; i++)
         {
-            for (int j = 0; j < columns; j++)
+            for (int j = 0; j < rows; j++)
             {
                 paint.Style = SKPaintStyle.Stroke;
                 paint.Color = SKColors.Black;
                 canvas.DrawCircle(
-                    rect.Left + i * xSpacing,
-                    rect.Top + j * ySpacing,
+                    rect.Left + radius + i * xSpacing,
+                    rect.Top + radius + j * ySpacing,
                     radius,
                     paint
                 );
-
             }
         }
     }
@@ -70,7 +73,6 @@ public class SkiaService
         //If paint2 is null draw fill, else draw gradient
         // paint.Style = SKPaintStyle.Fill;
         // paint.Color = SKColors.Red;
-
     }
 
     public void DrawText(
@@ -85,5 +87,11 @@ public class SkiaService
         paint ??= defaultPaint;
         font ??= defaultFont;
         canvas.DrawText(text, x, y, align, font, paint);
+    }
+
+    public SKColor RandomColor()
+    {
+        var rnd = new Random();
+        return SKColor.FromHsl(rnd.Next(0, 360), rnd.Next(40, 80), rnd.Next(40, 90));
     }
 }

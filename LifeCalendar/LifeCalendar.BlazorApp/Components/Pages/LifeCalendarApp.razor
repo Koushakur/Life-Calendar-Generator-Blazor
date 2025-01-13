@@ -8,10 +8,13 @@
     <div class="main">
         <div class="UI">
             <p>UI will go here</p>
+            <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv"/>
         </div>
-        <div @ref="imageContainer" class="imageContainer"></div>
+        <div @ref="_imageContainer" class="imageContainer"></div>
     </div>
+    <p>@debugText</p>
 
     <button @onclick="DownloadToFile">Download</button>
-    <button @onclick="RenderSkia">Re-Render</button>
+    <button @onclick="RenderSkiaTest">Re-Render</button>
+    <button @onclick="debug">debug</button>
 </div>
