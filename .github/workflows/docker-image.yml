@@ -1,0 +1,28 @@
+name: Build and Publish Image to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish_images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: 2154
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and tag Docker images
+        run: |
+          docker build --platform linux/amd64 -t 2154/lifecalendar:${{ github.sha }} -t 2154/lifecalendar:latest -f ./LifeCalendar/Dockerfile .
+          
+      - name: Push Docker images to Docker Hub
+        run: |
+          docker push 2154/lifecalendar:${{ github.sha }}
+          docker push 2154/lifecalendar:latest
