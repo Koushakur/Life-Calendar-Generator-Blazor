@@ -20,7 +20,7 @@ jobs:
 
       - name: Build and tag Docker images
         run: |
-          docker build --platform linux/amd64 -t 2154/lifecalendar:${{ github.sha }} -t 2154/lifecalendar:latest -f ./LifeCalendar/Dockerfile .
+          docker build --platform linux/amd64 -t 2154/lifecalendar:${{ github.sha }} -t 2154/lifecalendar:latest -f ./LifeCalendar/LifeCalendar.BlazorApp/Dockerfile .
           
       - name: Push Docker images to Docker Hub
         run: |
