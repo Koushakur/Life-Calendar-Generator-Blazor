@@ -12,6 +12,9 @@ ARG PROJECT_NAME=LifeCalendar.BlazorApp
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /app
 
+# Copy Skia to image
+COPY ["Common/libSkiaSharp.so", "./"]
+
 # Dynamiskt kopiera projektet baserat på bygg-argumentet
 COPY ["LifeCalendar/$PROJECT_NAME/$PROJECT_NAME.csproj", "$PROJECT_NAME/"]
 
