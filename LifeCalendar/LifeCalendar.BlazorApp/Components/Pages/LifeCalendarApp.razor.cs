@@ -1,173 +1,286 @@
-﻿using System.Globalization;
+﻿using System.Drawing;
+using System.Globalization;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 using LifeCalendar.BlazorApp.Services;
 using SkiaSharp;
 using CsvHelper;
+using CsvHelper.Configuration.Attributes;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
+
+//TODO: Kolla hur saker går sönder om earliestYear ändras iom datumändring
+//TODO: Render empty fill incase earliest date should be empty when it wasn't before
+//TODO: Checkboxes for "display years"
+//TODO: När week nums ska visas visa UI för att editera looken
+
+//TODO: Have a boundaryRect and update it instead of recreating all the time
+//TODO: Similarly so for xSpacing and ySpacing
+//TODO: Auto-update innan man genererat gör bara blank image men en period
+
+//TODO: Fråga Johan om Bind:before motsvarighet, göra något innan inför att bindad param ändras
 
 namespace LifeCalendar.BlazorApp.Components.Pages;
 
-public class EntryInfo()
+public class EntryInfo
 {
     public DateTime DateFrom { get; set; }
     public DateTime DateTo { get; set; }
-    public string? Color { get; set; }
+    [Optional] public string? Color { get; set; }
+    [Optional] public string? NameOfEvent { get; set; } = "";
 }
 
-public class LifePeriod()
+public class LifePeriod
 {
-    public int FromYear { get; set; }
-    public int FromWeek { get; set; }
-    public int ToYear { get; set; }
-    public int ToWeek { get; set; }
+    public DateTime DateFrom;
+    public DateTime DateTo;
 
-    public SKColor SkiaColor { get; set; }
-    // public string? NameOfEvent { get; set; } = null!;
+    public SKColor SkiaColor;
+    public string NameOfEvent = "";
 }
 
 public partial class LifeCalendarApp : IAsyncDisposable
 {
+    #region Parameters
+
     [Inject] IJSRuntime JS { get; set; } = null!;
     [Inject] SkiaService Skia { get; set; } = null!;
-    private IJSObjectReference? JSFuncs;
+    private IJSObjectReference? _jsFuncs;
 
     private ElementReference _imageContainer;
-    private ElementReference _debugP;
-    private byte[] _imgBytes = null!;
-    private int _imgWidth = 2100;
-    private int _imgHeight = 2970;
+
+    private byte[]? _imgBytes = null!;
+    private const int ImgWidth = 2100;
+    private const int ImgHeight = 2970;
     private int _rows = 80;
-    private int _radius = 10;
+    private int _circleRadius = 10;
 
     private int _topBorder = 100;
     private int _bottomBorder = 50;
     private int _leftBorder = 50;
     private int _rightBorder = 50;
+    private float _strokeWidth = 2;
 
     private int _earliestYear = 0;
     private int _latestYear = 0;
 
-    private string debugText = "Debug test";
+    private bool _autoUpdate = false;
+    private bool _visibleSortRemove = true;
+    private bool _visibleBoundaryEdit = false;
+    private bool _visibleWeekNumbers = true;
+
+    private string _debugText = "Debug test";
 
     private List<LifePeriod> _periodsToRender = [];
+
+    #endregion
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            JSFuncs = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/LifeCalendarApp.razor.js");
-
-            // _entries = ReadFromCsvData(@"C:\Temp\dates.csv");
-            // await RenderSkia();
-            // await RenderEntries();
+            _jsFuncs = await JS.InvokeAsync<IJSObjectReference>("import",
+                "./Components/Pages/LifeCalendarApp.razor.js");
         }
     }
 
-    private async Task RenderSkiaTest()
+    #region Rendering
+
+    private async Task RenderAllPeriods()
     {
-        using (SKPaint paint = new()
-               {
-                   Color = SKColors.Black,
-                   IsAntialias = true,
-                   StrokeWidth = 2,
-                   Style = SKPaintStyle.Fill
-               })
-        using (SKSurface surface = SKSurface.Create(new SKImageInfo(_imgWidth, _imgHeight)))
+        using SKPaint circlePaint = new();
+        circlePaint.Color = SKColors.Black;
+        circlePaint.IsAntialias = true;
+        circlePaint.StrokeWidth = _strokeWidth;
+        circlePaint.Style = SKPaintStyle.Stroke;
+
+        Skia.Surface ??= SKSurface.Create(new SKImageInfo(ImgWidth, ImgHeight));
+
+        if (_periodsToRender.Count != 0)
         {
-            var canvas = surface.Canvas;
-            Skia.Fill(canvas, SKColors.White);
+            var canvas = Skia.Surface.Canvas;
 
-            Skia.defaultPaint = paint;
+            var boundaryRect = MakeBoundaryRect();
 
-            Skia.defaultPaint.Style = SKPaintStyle.Fill;
-            Skia.DrawText(canvas, "Test text 1234567890", (float) _imgWidth / 2, 50);
+            Skia.Fill(canvas, SKColors.White); //Background fill
 
-            var tRect = new SKRect(50, 100, _imgWidth - 50, _imgHeight - 50);
-            Skia.defaultPaint.Style = SKPaintStyle.Stroke;
-            // Skia.DrawRectangle(canvas, tRect);
-            Skia.defaultFont.Size = 50;
-            Skia.DrawCircleMatrix(canvas, tRect, 52, _rows, _radius);
+            var xSpacing = (boundaryRect.Width - _circleRadius * 2) / 51;
+            var ySpacing = (boundaryRect.Height - _circleRadius * 2) / (_rows - 1);
 
-            await RenderSurfaceToImagePreview(surface);
-        }
-    }
+            CheckAndSetEarliestYear();
 
-    private async Task RenderLPs()
-    {
-        using (SKPaint circlePaint = new()
-               {
-                   Color = SKColors.Black,
-                   IsAntialias = true,
-                   StrokeWidth = 2,
-                   Style = SKPaintStyle.Stroke
-               })
-        using (SKPaint fillPaint = new()
-               {
-                   Color = SKColors.CornflowerBlue,
-                   IsAntialias = true,
-                   StrokeWidth = 2,
-                   Style = SKPaintStyle.Fill
-               })
-        using (SKSurface surface = SKSurface.Create(new SKImageInfo(_imgWidth, _imgHeight)))
-        {
-            if (_periodsToRender.Any())
+            foreach (var period in _periodsToRender)
             {
-                var canvas = surface.Canvas;
-                var periodIndex = 0;
-                var currentYear = _earliestYear;
+                RenderSinglePeriod(canvas, period, boundaryRect, xSpacing, ySpacing);
+            }
 
-                var boundaryRect = new SKRect(_leftBorder, _topBorder, _imgWidth - _rightBorder,
-                    _imgHeight - _bottomBorder);
+            RenderWeekNumbers(canvas);
+            Skia.DrawCircleMatrix(canvas, boundaryRect, 52, _rows, _circleRadius, circlePaint);
+        }
+        else
+        {
+            // Empty list, give warning?
+        }
 
-                Skia.Fill(canvas, SKColors.White); //Background fill
+        await RenderSurfaceToImagePreview(Skia.Surface);
+    }
 
-                var xSpacing = (boundaryRect.Width - _radius * 2) / 51;
-                var ySpacing = (boundaryRect.Height - _radius * 2) / (_rows - 1);
+    private void RenderSinglePeriod(SKCanvas canvas, LifePeriod period, SKRect boundaryRect, float xSpacing,
+        float ySpacing, SKPaint paint = null!)
+    {
+        using var fillPaint = paint ?? new SKPaint();
+        if (paint is null)
+        {
+            fillPaint.Color = period.SkiaColor;
+            fillPaint.IsAntialias = true;
+            fillPaint.StrokeWidth = 2;
+            fillPaint.Style = SKPaintStyle.Fill;
+        }
 
-                fillPaint.Color = _periodsToRender[periodIndex].SkiaColor;
-                var numYears = (_periodsToRender.Last().ToYear - _periodsToRender.First().FromYear) + 1;
+        var numYears = (period.DateTo.Year - period.DateFrom.Year) + 1;
+        var tYearStartIndex = period.DateFrom.Year - _earliestYear;
+        var tYearEndIndex = tYearStartIndex + numYears - 1;
 
-                // Years / Rows
-                for (int row = 0; row < numYears; row++)
+        var tCulture = CultureInfo.InvariantCulture;
+        var tFromWeek = tCulture.Calendar.GetWeekOfYear(period.DateFrom, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+        var tToWeek = tCulture.Calendar.GetWeekOfYear(period.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+
+        tFromWeek = CheckWeek(tFromWeek, period.DateFrom.Month);
+        tToWeek = CheckWeek(tToWeek, period.DateTo.Month);
+
+        var fillRadius = _circleRadius - _strokeWidth / 2;
+
+        for (int yearIndex = tYearStartIndex; yearIndex <= tYearEndIndex; yearIndex++)
+        {
+            var tYPos = boundaryRect.Top + _circleRadius + (ySpacing * yearIndex);
+
+            for (int weekIndex = 1; weekIndex <= 52; weekIndex++)
+            {
+                var xPos = boundaryRect.Left + _circleRadius + (xSpacing * (weekIndex - 1));
+
+                switch (numYears)
                 {
-                    var tYPos = boundaryRect.Top + _radius + ySpacing * row;
-
-                    // Weeks / Columns
-                    for (int column = 0; column < 52; column++)
+                    case 1:
                     {
-                        var tXPos = boundaryRect.Left + _radius + (xSpacing * column);
-
-                        canvas.DrawCircle(tXPos, tYPos, _radius, fillPaint);
-
-                        if ((column + 1) >= _periodsToRender[periodIndex].ToWeek &&
-                            currentYear >= _periodsToRender[periodIndex].ToYear)
-                        {
-                            if (periodIndex < _periodsToRender.Count - 1)
-                            {
-                                periodIndex++;
-                                fillPaint.Color = _periodsToRender[periodIndex].SkiaColor;
-                            }
-                            else
-                            {
-                                // Out of life periods, rest should be blank
-                                fillPaint.Color = SKColors.Empty;
-                            }
-                        }
+                        if (weekIndex >= tFromWeek && weekIndex <= tToWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
                     }
-
-                    currentYear++;
+                    case 2 when yearIndex == tYearStartIndex:
+                    {
+                        if (weekIndex >= tFromWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (weekIndex <= tToWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case >= 3 when yearIndex == tYearStartIndex:
+                    {
+                        if (weekIndex >= tFromWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case >= 3 when yearIndex == tYearEndIndex:
+                    {
+                        if (weekIndex <= tToWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case >= 3:
+                        canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
                 }
-
-                Skia.DrawCircleMatrix(canvas, boundaryRect, 52, _rows, _radius, circlePaint);
             }
-            else
-            {
-                // Empty list, give warning?
-            }
-
-            await RenderSurfaceToImagePreview(surface);
         }
+    }
+
+    private void BlankOutSinglePeriod(SKCanvas canvas, LifePeriod period, SKRect boundaryRect, float xSpacing,
+        float ySpacing)
+    {
+        using SKPaint fillPaint = new();
+        fillPaint.Color = SKColor.Empty;
+        fillPaint.IsAntialias = true;
+        fillPaint.StrokeWidth = 2;
+        fillPaint.Style = SKPaintStyle.Fill;
+
+        var numYears = (period.DateTo.Year - period.DateFrom.Year) + 1;
+        var tYearStartIndex = period.DateFrom.Year - _earliestYear;
+        var tYearEndIndex = tYearStartIndex + numYears - 1;
+
+        var tCulture = CultureInfo.InvariantCulture;
+        var tFromWeek = tCulture.Calendar.GetWeekOfYear(period.DateFrom, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+        var tToWeek = tCulture.Calendar.GetWeekOfYear(period.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+
+        tFromWeek = CheckWeek(tFromWeek, period.DateFrom.Month);
+        tToWeek = CheckWeek(tToWeek, period.DateTo.Month);
+
+        var fillRadius = _circleRadius - _strokeWidth / 2;
+
+        for (int yearIndex = tYearStartIndex; yearIndex <= tYearEndIndex; yearIndex++)
+        {
+            var tYPos = boundaryRect.Top + _circleRadius + (ySpacing * yearIndex);
+
+            for (int weekIndex = 1; weekIndex <= 52; weekIndex++)
+            {
+                var xPos = boundaryRect.Left + _circleRadius + (xSpacing * (weekIndex - 1));
+
+                switch (numYears)
+                {
+                    case 1:
+                    {
+                        if (weekIndex >= tFromWeek && weekIndex <= tToWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case 2 when yearIndex == tYearStartIndex:
+                    {
+                        if (weekIndex >= tFromWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (weekIndex <= tToWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case >= 3 when yearIndex == tYearStartIndex:
+                    {
+                        if (weekIndex >= tFromWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case >= 3 when yearIndex == tYearEndIndex:
+                    {
+                        if (weekIndex <= tToWeek)
+                            canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                    }
+                    case >= 3:
+                        canvas.DrawCircle(xPos, tYPos, fillRadius, fillPaint);
+                        break;
+                }
+            }
+        }
+    }
+
+    private async Task PartialReRender(int index)
+    {
+        Skia.Surface ??= SKSurface.Create(new SKImageInfo(ImgWidth, ImgHeight));
+
+        var boundaryRect = MakeBoundaryRect();
+        var xSpacing = (boundaryRect.Width - _circleRadius * 2) / 51;
+        var ySpacing = (boundaryRect.Height - _circleRadius * 2) / (_rows - 1);
+
+        CheckAndSetEarliestYear();
+
+        RenderSinglePeriod(Skia.Surface.Canvas, _periodsToRender[index], boundaryRect, xSpacing, ySpacing);
+
+        await RenderSurfaceToImagePreview(Skia.Surface);
     }
 
     private async Task RenderSurfaceToImagePreview(SKSurface surface)
@@ -178,32 +291,38 @@ public partial class LifeCalendarApp : IAsyncDisposable
         {
             string base64Image = Convert.ToBase64String(ms.ToArray());
             _imgBytes = ms.ToArray();
-            await JSFuncs!.InvokeVoidAsync("displayBase64Image", _imageContainer,
+            await _jsFuncs!.InvokeVoidAsync("displayBase64Image", _imageContainer,
                 $"data:image/png;base64,{base64Image}");
         }
     }
 
+    private void RenderWeekNumbers(SKCanvas canvas)
+    {
+        if (!_visibleWeekNumbers) return;
+
+        var boundaryRect = MakeBoundaryRect();
+
+        var xSpacing = (boundaryRect.Width - _circleRadius * 2) / 51;
+
+        for (int i = 0; i < 52; i++)
+        {
+            var yPos = boundaryRect.Top - 20;
+            var xPos = boundaryRect.Left + _circleRadius + (xSpacing * (i));
+            Skia.DrawText(canvas, (i + 1).ToString(), xPos, yPos, align: SKTextAlign.Center);
+        }
+    }
+
+    #endregion
+
     private async Task DownloadToFile()
     {
-        if (JSFuncs != null && _imgBytes != null)
+        if (_jsFuncs != null && _imgBytes != null)
         {
-            await JSFuncs!.InvokeVoidAsync(
+            await _jsFuncs!.InvokeVoidAsync(
                 "downloadFileFromStream",
                 $"Image.png",
                 new DotNetStreamReference(new MemoryStream(_imgBytes))
             );
-        }
-    }
-
-    private async Task OnInputFileChange(InputFileChangeEventArgs e)
-    {
-        var tFile = e.File;
-        if (tFile.ContentType == "text/csv")
-        {
-            var mStream = new MemoryStream();
-            await tFile.OpenReadStream().CopyToAsync(mStream);
-            _periodsToRender = ReadFromCsvStream(mStream);
-            await RenderLPs();
         }
     }
 
@@ -230,35 +349,19 @@ public partial class LifeCalendarApp : IAsyncDisposable
     private List<LifePeriod> ConvertEntriesToLifePeriods(List<EntryInfo> entries)
     {
         var tList = new List<LifePeriod>();
-        var tEarliestYear = 0;
-        var tLastYear = 0;
 
         foreach (var entry in entries)
         {
-            var tCulture = CultureInfo.InvariantCulture;
-            var weekF = tCulture.Calendar.GetWeekOfYear(entry.DateFrom, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-            var weekT = tCulture.Calendar.GetWeekOfYear(entry.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-
-            weekF = CheckWeek(weekF, entry.DateFrom.Month);
-            weekT = CheckWeek(weekT, entry.DateTo.Month);
-
-            if (tEarliestYear == 0) tEarliestYear = entry.DateFrom.Year;
-
             tList.Add(new LifePeriod
             {
-                FromYear = entry.DateFrom.Year,
-                FromWeek = weekF,
-                ToYear = entry.DateTo.Year,
-                ToWeek = weekT,
+                DateFrom = entry.DateFrom,
+                DateTo = entry.DateTo,
                 SkiaColor = (entry.Color == "") ? Skia.RandomColor() : SKColor.Parse(entry.Color),
+                NameOfEvent = entry.NameOfEvent!,
             });
-
-            if (tLastYear == 0) tLastYear = entry.DateTo.Year;
-            else if (tLastYear < entry.DateTo.Year) tLastYear = entry.DateTo.Year;
         }
 
-        _earliestYear = tEarliestYear;
-        _latestYear = tLastYear;
+        CheckAndSetEarliestYear();
 
         return tList;
     }
@@ -271,12 +374,18 @@ public partial class LifeCalendarApp : IAsyncDisposable
             return week;
     }
 
-    private async Task debug()
+    private void CheckAndSetEarliestYear()
     {
-        debugText = "";
+        foreach (var period in _periodsToRender)
+        {
+            if (period.DateFrom.Year < _earliestYear || _earliestYear == 0)
+                _earliestYear = period.DateFrom.Year;
+        }
+    }
 
-        RandomizeAllColors();
-        await RenderLPs();
+    private SKRect MakeBoundaryRect()
+    {
+        return new SKRect(_leftBorder, _topBorder, ImgWidth - _rightBorder, ImgHeight - _bottomBorder);
     }
 
     private void RandomizeAllColors()
@@ -287,13 +396,65 @@ public partial class LifeCalendarApp : IAsyncDisposable
         }
     }
 
+    private void AddBlankLpToList()
+    {
+        var tP = new LifePeriod
+        {
+            DateFrom = DateTime.Now.AddYears(-5),
+            DateTo = DateTime.Now,
+            SkiaColor = Skia.RandomColor()
+        };
+        _periodsToRender.Add(tP);
+    }
+
+    private void Test(EventArgs e)
+    {
+        var t = e.ToString();
+    }
+
+    #region Triggers
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var tFile = e.File;
+        if (tFile.ContentType == "text/csv")
+        {
+            var mStream = new MemoryStream();
+            await tFile.OpenReadStream().CopyToAsync(mStream);
+            _periodsToRender = ReadFromCsvStream(mStream);
+            await RenderAllPeriods();
+        }
+    }
+
+    private async Task OnChangedColor(ChangeEventArgs e, int index)
+    {
+        _periodsToRender[index].SkiaColor = SKColor.Parse(e.Value!.ToString());
+
+        if (!_autoUpdate) return;
+
+        await PartialReRender(index);
+    }
+
+    private async Task OnChangedDate(int index)
+    {
+        if (!_autoUpdate) return;
+
+        Skia.Surface ??= SKSurface.Create(new SKImageInfo(ImgWidth, ImgHeight));
+
+        BlankOutSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index], MakeBoundaryRect(), 32, 32);
+
+        await PartialReRender(index);
+    }
+
+    #endregion
+
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (JSFuncs != null)
+        if (_jsFuncs != null)
         {
             try
             {
-                await JSFuncs.DisposeAsync();
+                await _jsFuncs.DisposeAsync();
                 GC.SuppressFinalize(this);
             }
             catch (JSDisconnectedException)

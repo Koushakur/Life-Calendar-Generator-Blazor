@@ -4,25 +4,21 @@ namespace LifeCalendar.BlazorApp.Services;
 
 public class SkiaService
 {
-    public SKPaint defaultPaint;
-    public SKFont defaultFont;
+    public SKSurface? Surface;
 
-    public SkiaService()
+    public SKPaint DefaultPaint = new()
     {
-        defaultPaint = new()
-        {
-            Color = SKColors.Black,
-            IsAntialias = true,
-            StrokeWidth = 3,
-            Style = SKPaintStyle.Stroke
-        };
+        Color = SKColors.Black,
+        IsAntialias = true,
+        StrokeWidth = 3,
+        Style = SKPaintStyle.Stroke
+    };
 
-        defaultFont = new()
-        {
-            Typeface = SKTypeface.FromFamilyName("Atkinson Hyperlegible"),
-            Size = 50
-        };
-    }
+    public SKFont DefaultFont = new()
+    {
+        Typeface = SKTypeface.FromFamilyName("Atkinson Hyperlegible"),
+        Size = 25
+    };
 
     public void Fill(SKCanvas canvas, SKColor color)
     {
@@ -31,7 +27,7 @@ public class SkiaService
 
     public void DrawRectangle(SKCanvas canvas, SKRect rect)
     {
-        canvas.DrawRect(rect, defaultPaint);
+        canvas.DrawRect(rect, DefaultPaint);
     }
 
     public void DrawCircleMatrix(
@@ -40,9 +36,9 @@ public class SkiaService
         int columns,
         int rows,
         float radius,
-        SKPaint paint = null!)
+        SKPaint? paint = null)
     {
-        paint ??= defaultPaint;
+        paint ??= DefaultPaint;
 
         var xSpacing = (rect.Width - radius * 2) / (columns - 1);
         var ySpacing = (rect.Height - radius * 2) / (rows - 1);
@@ -84,8 +80,8 @@ public class SkiaService
         SKTextAlign align = SKTextAlign.Center,
         SKFont font = null!)
     {
-        paint ??= defaultPaint;
-        font ??= defaultFont;
+        paint ??= DefaultPaint;
+        font ??= DefaultFont;
         canvas.DrawText(text, x, y, align, font, paint);
     }
 

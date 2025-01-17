@@ -7,6 +7,24 @@
          width: fit-content;
          text-wrap: nowrap;
          margin-right: 50px;
+
+         #lpList {
+            list-style-type: none;
+            margin-left: -25px;
+         }
+
+         .ButtonSortRemove {
+            height: 22px;
+            width: 16px;
+            margin-right: 2px;
+            padding: 0;
+            text-align: center;
+
+            &:is(span) {
+               display: inline-block;
+               width: 14px;
+            }
+         }
       }
 
       .imageContainer {

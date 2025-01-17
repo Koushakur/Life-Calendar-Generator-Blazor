@@ -7,14 +7,117 @@
 
     <div class="main">
         <div class="UI">
-            <p>UI will go here</p>
+
+            @* Auto-update *@
+            <label for="AutoUpdate">Auto-update every change</label>
+            <input @bind="_autoUpdate" id="AutoUpdate" type="checkbox"/>
+            <br/>
+            @* Sort and Remvoe button visibility *@
+            <label for="SortAndRemove">Sort and remove buttons</label>
+            <input @bind="_visibleSortRemove" id="SortAndRemove" type="checkbox"/>
+            <br/>
+            @* Week number visibility *@
+            <label for="WeekNumbers">Show week numbers</label>
+            <input @bind="_visibleWeekNumbers" id="WeekNumbers" type="checkbox"/>
+            <br/>
+            @* Boundary edit visibility *@
+            <label for="BoundaryEdit">Edit boundary</label>
+            <input @bind="_visibleBoundaryEdit" id="BoundaryEdit" type="checkbox"/>
+            @if (_visibleBoundaryEdit)
+            {
+                <br/>
+                <input @bind="_topBorder"/>
+                <input @bind="_leftBorder"/>
+                <input @bind="_rightBorder"/>
+                <input @bind="_bottomBorder"/>
+            }
+            <br/>
+            @* Upload CSV *@
+            <label for="csvFilePicker"></label>
             <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv"/>
+            <br/>
+            @* Add button *@
+            <button @onclick="AddBlankLpToList">Add new period</button>
+
+            @* The List *@
+            <ul id="lpList">
+                @{ var i = 0; }
+                @foreach (var period in _periodsToRender)
+                {
+                    var tI = i;
+                    <li>
+                        @if (_visibleSortRemove)
+                        {
+                            //Remove
+                            <button @onclick="() => _periodsToRender.RemoveAt(tI)" class="ButtonSortRemove">-</button>
+                            if (tI > 0)
+                            {
+                                //Move to top
+                                <button class="ButtonSortRemove"
+                                        @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); }">
+                                    &UpArrowBar;
+                                </button>
+
+                                //Move up
+                                <button class="ButtonSortRemove"
+                                        @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI - 1]) = (_periodsToRender[tI - 1], _periodsToRender[tI]); }">
+                                    &uarr;
+                                </button>
+                            }
+                            else
+                            {
+                                //Topmost item can't be sorted upwards, fill out with dummy buttons
+                                <span class="ButtonSortRemove"></span>
+                                <span class="ButtonSortRemove"></span>
+                            }
+
+                            if (tI < _periodsToRender.Count - 1)
+                            {
+                                //Move down
+                                <button class="ButtonSortRemove"
+                                        @onclick="() => {  (_periodsToRender[tI], _periodsToRender[tI + 1]) = (_periodsToRender[tI + 1], _periodsToRender[tI]); }">
+                                    &darr;
+                                </button>
+
+                                //Move to bottom
+                                <button class="ButtonSortRemove"
+                                        @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); }">
+                                    &DownArrowBar;
+                                </button>
+                            }
+                            else
+                            {
+                                //Bottommost item can't be sorted downwards, fill out with dummy buttons
+                                <span class="ButtonSortRemove"></span>
+                                <span class="ButtonSortRemove"></span>
+                            }
+                        }
+
+                        @* Start date *@
+                        <input type="date" @bind="_periodsToRender[tI].DateFrom"
+                               @bind:after="() => OnChangedDate(tI)"/>
+
+                        @* End date *@
+                        <input type="date" @bind="_periodsToRender[tI].DateTo"
+                               @bind:after="() => OnChangedDate(tI)"/>
+
+                        @* Color *@
+                        <input type="color" value=@period.SkiaColor.ToString().Remove(1, 2)
+                               @onchange="(e) => OnChangedColor(e, tI)"/>
+
+                        @* Name *@
+                        <input value=@period.NameOfEvent/>
+                    </li>
+                    i++;
+                }
+
+            </ul>
+
         </div>
         <div @ref="_imageContainer" class="imageContainer"></div>
     </div>
-    <p>@debugText</p>
 
+    <button @onclick="RenderAllPeriods">Create</button>
     <button @onclick="DownloadToFile">Download</button>
-    <button @onclick="RenderSkiaTest">Re-Render</button>
-    <button @onclick="debug">debug</button>
+    <button @onclick="RandomizeAllColors">Randomize All Colors</button>
 </div>

@@ -107,6 +107,17 @@ body {
   list-style-type: none;
   margin-left: -25px;
 }
+.container .main .UI .ButtonSortRemove {
+  height: 22px;
+  width: 16px;
+  margin-right: 2px;
+  padding: 0;
+  text-align: center;
+}
+.container .main .UI .ButtonSortRemove:is(span) {
+  display: inline-block;
+  width: 14px;
+}
 .container .main .imageContainer {
   margin-left: auto;
 }
