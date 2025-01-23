@@ -8,10 +8,20 @@
     <div class="main">
         <div class="UI">
 
-            @* Auto-update *@
-            <label for="AutoUpdate">Auto-update every change</label>
-            <input @bind="_autoUpdate" id="AutoUpdate" type="checkbox"/>
+            @* Auto-update, for now more trouble tha it's worth, consider it later *@
+            @* <label for="AutoUpdate">Auto-update every change</label> *@
+            @* <input @bind="_autoUpdate" id="AutoUpdate" type="checkbox"/> *@
+            @* <br/> *@
+
+            @* Sort and Remvoe button visibility *@
+            <label for="VisibilityTitle">Show title</label>
+            <input @bind="_visibleTitle" id="VisibilityTitle" type="checkbox"/>
+            @if (_visibleTitle)
+            {
+                <input @bind="_title"/>
+            }
             <br/>
+
             @* Sort and Remvoe button visibility *@
             <label for="SortAndRemove">Sort and remove buttons</label>
             <input @bind="_visibleSortRemove" id="SortAndRemove" type="checkbox"/>
@@ -20,104 +30,139 @@
             <label for="WeekNumbers">Show week numbers</label>
             <input @bind="_visibleWeekNumbers" id="WeekNumbers" type="checkbox"/>
             <br/>
+            @* Year number visibility *@
+            <label for="YearNumbers">Show year numbers</label>
+            <input @bind="_visibleYearNumbers" id="YearNumbers" type="checkbox"/>
+            <br/>
             @* Boundary edit visibility *@
             <label for="BoundaryEdit">Edit boundary</label>
             <input @bind="_visibleBoundaryEdit" id="BoundaryEdit" type="checkbox"/>
             @if (_visibleBoundaryEdit)
             {
                 <br/>
-                <input @bind="_topBorder"/>
-                <input @bind="_leftBorder"/>
-                <input @bind="_rightBorder"/>
-                <input @bind="_bottomBorder"/>
+                <input @bind="_topBorder" @bind:after="UpdateBoundaryRect"/>
+                <input @bind="_leftBorder" @bind:after="UpdateBoundaryRect"/>
+                <input @bind="_rightBorder" @bind:after="UpdateBoundaryRect"/>
+                <input @bind="_bottomBorder" @bind:after="UpdateBoundaryRect"/>
             }
+
+            @* Colors *@
             <br/>
+            <label for="colorBackground">Background color</label>
+            <input id="colorBackground" type="color" value="@_colorBackground.ToString().Remove(1, 2)"
+                   @onchange="(e) => OnChangedColor(e, Colors.Background)"/>
+            <label for="colorCircle">| Circle color</label>
+            <input id="colorCircle" type="color" value="@_colorCircle.ToString().Remove(1, 2)"
+                   @onchange="(e) => OnChangedColor(e, Colors.Circles)"/>
+            <label for="colorText">| Text color</label>
+            <input id="colorText" type="color" value="@_colorText.ToString().Remove(1, 2)"
+                   @onchange="(e) => OnChangedColor(e, Colors.Text)"/>
+            <br/>
+
             @* Upload CSV *@
             <label for="csvFilePicker"></label>
             <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv"/>
             <br/>
-            @* Add button *@
+            @* Render all *@
+            <button @onclick="RenderAllPeriods">Render all</button>
+            @* Add period *@
             <button @onclick="AddBlankLpToList">Add new period</button>
 
             @* The List *@
             <ul id="lpList">
                 @{ var i = 0; }
-                @foreach (var period in _periodsToRender)
+                @if (_periodsToRender.Count > 0)
                 {
-                    var tI = i;
-                    <li>
-                        @if (_visibleSortRemove)
-                        {
-                            //Remove
-                            <button @onclick="() => _periodsToRender.RemoveAt(tI)" class="ButtonSortRemove">-</button>
-                            if (tI > 0)
+                    @foreach (var period in _periodsToRender)
+                    {
+                        var tI = i;
+                        <li>
+                            @if (_visibleSortRemove)
                             {
-                                //Move to top
-                                <button class="ButtonSortRemove"
-                                        @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); }">
-                                    &UpArrowBar;
+                                //Remove
+                                <button @onclick="() => _periodsToRender.RemoveAt(tI)" class="ButtonSortRemove">-
                                 </button>
 
-                                //Move up
-                                <button class="ButtonSortRemove"
-                                        @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI - 1]) = (_periodsToRender[tI - 1], _periodsToRender[tI]); }">
-                                    &uarr;
-                                </button>
+                                if (tI > 0)
+                                {
+                                    //Move to top
+                                    <button class="ButtonSortRemove"
+                                            @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); }">
+                                        &UpArrowBar;
+                                    </button>
+
+                                    //Move up
+                                    <button class="ButtonSortRemove"
+                                            @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI - 1]) = (_periodsToRender[tI - 1], _periodsToRender[tI]); }">
+                                        &uarr;
+                                    </button>
+                                }
+                                else
+                                {
+                                    //Topmost item can't be sorted upwards, fill out the space
+                                    if (_periodsToRender.Count != 1)
+                                    {
+                                        <span class="ButtonSortRemove"></span>
+                                        <span class="ButtonSortRemove"></span>
+                                    }
+                                }
+
+                                if (tI < _periodsToRender.Count - 1)
+                                {
+                                    //Move down
+                                    <button class="ButtonSortRemove"
+                                            @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI + 1]) = (_periodsToRender[tI + 1], _periodsToRender[tI]); }">
+                                        &darr;
+                                    </button>
+
+                                    //Move to bottom
+                                    <button class="ButtonSortRemove"
+                                            @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); }">
+                                        &DownArrowBar;
+                                    </button>
+                                }
+                                else
+                                {
+                                    //Bottommost item can't be sorted downwards, fill out space
+                                    if (_periodsToRender.Count != 1)
+                                    {
+                                        <span class="ButtonSortRemove"></span>
+                                        <span class="ButtonSortRemove"></span>
+                                    }
+                                }
                             }
-                            else
-                            {
-                                //Topmost item can't be sorted upwards, fill out with dummy buttons
-                                <span class="ButtonSortRemove"></span>
-                                <span class="ButtonSortRemove"></span>
-                            }
 
-                            if (tI < _periodsToRender.Count - 1)
-                            {
-                                //Move down
-                                <button class="ButtonSortRemove"
-                                        @onclick="() => {  (_periodsToRender[tI], _periodsToRender[tI + 1]) = (_periodsToRender[tI + 1], _periodsToRender[tI]); }">
-                                    &darr;
-                                </button>
+                            @* Start date *@
+                            <input type="date"
+                                   @bind:get="GetFromDateValue(tI)"
+                                   @bind:set="(newValue) => { SetFromDateValue(newValue, tI); OnChangedDate(tI); }"/>
 
-                                //Move to bottom
-                                <button class="ButtonSortRemove"
-                                        @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); }">
-                                    &DownArrowBar;
-                                </button>
-                            }
-                            else
-                            {
-                                //Bottommost item can't be sorted downwards, fill out with dummy buttons
-                                <span class="ButtonSortRemove"></span>
-                                <span class="ButtonSortRemove"></span>
-                            }
-                        }
+                            @* End date *@
+                            <input type="date"
+                                   @bind:get="GetToDateValue(tI)"
+                                   @bind:set="(newValue) => { SetToDateValue(newValue, tI); OnChangedDate(tI); }"/>
 
-                        @* Start date *@
-                        <input type="date" @bind="_periodsToRender[tI].DateFrom"
-                               @bind:after="() => OnChangedDate(tI)"/>
+                            @* Color *@
+                            <input type="color" value=@period.SkiaColor.ToString().Remove(1, 2)
+                                   @onchange="(e) => OnChangedPeriodColor(e, tI)"/>
 
-                        @* End date *@
-                        <input type="date" @bind="_periodsToRender[tI].DateTo"
-                               @bind:after="() => OnChangedDate(tI)"/>
-
-                        @* Color *@
-                        <input type="color" value=@period.SkiaColor.ToString().Remove(1, 2)
-                               @onchange="(e) => OnChangedColor(e, tI)"/>
-
-                        @* Name *@
-                        <input value=@period.NameOfEvent/>
-                    </li>
-                    i++;
+                            @* Name *@
+                            <input value=@period.NameOfEvent/>
+                        </li>
+                        i++;
+                    }
                 }
-
+                else
+                {
+                    <p>To begin either press 'Add new period' or <a href="/howto#anchor-test">upload a .csv file with
+                            the data</a></p>
+                }
             </ul>
 
         </div>
         <div @ref="_imageContainer" class="imageContainer"></div>
     </div>
 
-    <button @onclick="RenderAllPeriods">Create</button>
     <button @onclick="DownloadToFile">Download</button>
     <button @onclick="RandomizeAllColors">Randomize All Colors</button>
 </div>

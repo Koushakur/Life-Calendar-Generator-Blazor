@@ -6,7 +6,7 @@ public class SkiaService
 {
     public SKSurface? Surface;
 
-    public SKPaint DefaultPaint = new()
+    public SKPaint _defaultPaint = new()
     {
         Color = SKColors.Black,
         IsAntialias = true,
@@ -14,10 +14,18 @@ public class SkiaService
         Style = SKPaintStyle.Stroke
     };
 
-    public SKFont DefaultFont = new()
+    public SKFont _defaultFont = new()
     {
         Typeface = SKTypeface.FromFamilyName("Atkinson Hyperlegible"),
-        Size = 25
+        Size = 24
+    };
+
+    public SKPaint _defaultPaintFont = new()
+    {
+        Color = SKColors.Black,
+        IsAntialias = true,
+        Style = SKPaintStyle.StrokeAndFill,
+        StrokeWidth = 1
     };
 
     public void Fill(SKCanvas canvas, SKColor color)
@@ -27,7 +35,7 @@ public class SkiaService
 
     public void DrawRectangle(SKCanvas canvas, SKRect rect)
     {
-        canvas.DrawRect(rect, DefaultPaint);
+        canvas.DrawRect(rect, _defaultPaint);
     }
 
     public void DrawCircleMatrix(
@@ -38,7 +46,7 @@ public class SkiaService
         float radius,
         SKPaint? paint = null)
     {
-        paint ??= DefaultPaint;
+        paint ??= _defaultPaint;
 
         var xSpacing = (rect.Width - radius * 2) / (columns - 1);
         var ySpacing = (rect.Height - radius * 2) / (rows - 1);
@@ -47,8 +55,6 @@ public class SkiaService
         {
             for (int j = 0; j < rows; j++)
             {
-                paint.Style = SKPaintStyle.Stroke;
-                paint.Color = SKColors.Black;
                 canvas.DrawCircle(
                     rect.Left + radius + i * xSpacing,
                     rect.Top + radius + j * ySpacing,
@@ -57,18 +63,6 @@ public class SkiaService
                 );
             }
         }
-    }
-
-    public void FillCircles(
-        SKCanvas canvas,
-        int from,
-        int to,
-        SKPaint paint1,
-        SKPaint paint2 = null!)
-    {
-        //If paint2 is null draw fill, else draw gradient
-        // paint.Style = SKPaintStyle.Fill;
-        // paint.Color = SKColors.Red;
     }
 
     public void DrawText(
@@ -80,8 +74,8 @@ public class SkiaService
         SKTextAlign align = SKTextAlign.Center,
         SKFont font = null!)
     {
-        paint ??= DefaultPaint;
-        font ??= DefaultFont;
+        paint ??= _defaultPaintFont;
+        font ??= _defaultFont;
         canvas.DrawText(text, x, y, align, font, paint);
     }
 
