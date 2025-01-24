@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using System.Reflection;
+using SkiaSharp;
 
 namespace LifeCalendar.BlazorApp.Services;
 
@@ -36,6 +37,21 @@ public class SkiaService
     public void DrawRectangle(SKCanvas canvas, SKRect rect)
     {
         canvas.DrawRect(rect, _defaultPaint);
+    }
+
+    public SkiaService()
+    {
+        _defaultFont.Typeface = GetTypeface("AtkinsonHyperlegible-Regular.ttf");
+    }
+
+    private static SKTypeface GetTypeface(string fontFileName)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var stream = assembly.GetManifestResourceStream(@"LifeCalendar.BlazorApp.Services.Fonts." + fontFileName);
+        if (stream == null)
+            return null!;
+
+        return SKTypeface.FromStream(stream);
     }
 
     public void DrawCircleMatrix(

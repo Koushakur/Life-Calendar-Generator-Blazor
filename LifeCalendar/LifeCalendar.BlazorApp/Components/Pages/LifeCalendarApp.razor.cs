@@ -75,11 +75,13 @@ public partial class LifeCalendarApp : IAsyncDisposable
     private string _title = "Life Calendar";
 
     private bool _autoUpdate = false;
-    private bool _visibleSortRemove = true;
+    private bool _visibleSortRemove = false;
     private bool _visibleBoundaryEdit = false;
     private bool _visibleTitle = true;
     private bool _visibleWeekNumbers = true;
     private bool _visibleYearNumbers = true;
+
+    private List<float> _debugList = [];
 
     private List<LifePeriod> _periodsToRender = [];
 
@@ -303,17 +305,20 @@ public partial class LifeCalendarApp : IAsyncDisposable
     {
         if (!_visibleYearNumbers) return;
 
+        _debugList = [];
         for (var i = 0; i < _rows; i++)
         {
             String yearText = (i + _earliestYear).ToString();
             Skia._defaultFont.MeasureText(yearText, out var r);
 
+            _debugList.Add(r.MidX);
+
             var centeringOffset = ((_circleRadius * 2) - r.Height) / 2;
 
-            var xPos = _boundaryRect.Left - 20;
+            var xPos = _boundaryRect.Left - 45;
             var yPos = _boundaryRect.Top + (_circleRadius * 2) - centeringOffset + (_ySpacing * (i));
 
-            Skia.DrawText(canvas, yearText, xPos, yPos, align: SKTextAlign.Right);
+            Skia.DrawText(canvas, yearText, xPos, yPos, align: SKTextAlign.Center);
         }
     }
 
