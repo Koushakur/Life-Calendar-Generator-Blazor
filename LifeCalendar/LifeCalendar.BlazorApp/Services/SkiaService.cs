@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Globalization;
+using System.Reflection;
 using SkiaSharp;
 
 namespace LifeCalendar.BlazorApp.Services;
@@ -17,7 +18,6 @@ public class SkiaService
 
     public SKFont _defaultFont = new()
     {
-        Typeface = SKTypeface.FromFamilyName("Atkinson Hyperlegible"),
         Size = 24
     };
 
@@ -29,6 +29,12 @@ public class SkiaService
         StrokeWidth = 1
     };
 
+    public SkiaService()
+    {
+        // _defaultFont.Typeface = GetTypefaceResource("AtkinsonHyperlegible-Regular.ttf");
+        _defaultFont.Typeface = GetTypefaceResource("AtkinsonHyperlegibleNext-VariableFont_wght.ttf");
+    }
+
     public void Fill(SKCanvas canvas, SKColor color)
     {
         canvas.Clear(color);
@@ -39,12 +45,7 @@ public class SkiaService
         canvas.DrawRect(rect, _defaultPaint);
     }
 
-    public SkiaService()
-    {
-        _defaultFont.Typeface = GetTypeface("AtkinsonHyperlegible-Regular.ttf");
-    }
-
-    private static SKTypeface GetTypeface(string fontFileName)
+    private static SKTypeface GetTypefaceResource(string fontFileName)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var stream = assembly.GetManifestResourceStream(@"LifeCalendar.BlazorApp.Services.Fonts." + fontFileName);
@@ -52,6 +53,42 @@ public class SkiaService
             return null!;
 
         return SKTypeface.FromStream(stream);
+    }
+
+    public async Task<bool> FetchFontFromGoogle(string fontName)
+    {
+        try
+        {
+            //Case-sensitive, making sure it's right
+            fontName = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(fontName);
+
+            using var client = new HttpClient();
+
+            var res = await client.GetAsync($"https://fonts.googleapis.com/css?family={fontName}");
+
+            if (!res.IsSuccessStatusCode) return false;
+
+            var content = await res.Content.ReadAsStringAsync();
+            const string searchString = @"src: url(";
+            var startIndex = content.IndexOf(searchString, StringComparison.Ordinal);
+            var endIndex = content.IndexOf(')', startIndex);
+
+            var urlSubstring = content.Substring(startIndex + searchString.Length,
+                (endIndex - startIndex) - searchString.Length);
+
+            var fontRes = await client.GetAsync(urlSubstring);
+
+            if (!fontRes.IsSuccessStatusCode) return false;
+
+            _defaultFont.Typeface = SKTypeface.FromStream(await fontRes.Content.ReadAsStreamAsync());
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 
     public void DrawCircleMatrix(
@@ -87,15 +124,21 @@ public class SkiaService
         float x,
         float y,
         SKPaint paint = null!,
-        SKTextAlign align = SKTextAlign.Center,
+        SKTextAlign alignment = SKTextAlign.Center,
         SKFont font = null!)
     {
         paint ??= _defaultPaintFont;
         font ??= _defaultFont;
-        canvas.DrawText(text, x, y, align, font, paint);
+        canvas.DrawText(text, x, y, alignment, font, paint);
     }
 
-    public SKColor RandomColor()
+    public string RandomColorString()
+    {
+        var rnd = new Random();
+        return SKColor.FromHsl(rnd.Next(0, 360), rnd.Next(40, 80), rnd.Next(40, 90)).ToString();
+    }
+
+    public SKColor RandomColorSkColor()
     {
         var rnd = new Random();
         return SKColor.FromHsl(rnd.Next(0, 360), rnd.Next(40, 80), rnd.Next(40, 90));

@@ -1,5 +1,9 @@
+using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using LifeCalendar.BlazorApp.Components;
+using LifeCalendar.BlazorApp.Data;
 using LifeCalendar.BlazorApp.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +12,15 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<SkiaService>();
+builder.Services.AddBlazorBootstrap();
+
+builder.Services.AddDbContextFactory<ImageContext>(
+    options => options.UseSqlite(builder.Configuration.GetConnectionString("ImageDb"))
+);
+builder.Services.AddSingleton<ImageDbService>();
+
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredSessionStorage();
 
 var app = builder.Build();
 

@@ -13,7 +13,7 @@
             @* <input @bind="_autoUpdate" id="AutoUpdate" type="checkbox"/> *@
             @* <br/> *@
 
-            @* Sort and Remvoe button visibility *@
+            @* Title visibility *@
             <label for="VisibilityTitle">Show title</label>
             <input @bind="_visibleTitle" id="VisibilityTitle" type="checkbox"/>
             @if (_visibleTitle)
@@ -22,10 +22,20 @@
             }
             <br/>
 
-            @* Sort and Remvoe button visibility *@
-            <label for="SortAndRemove">Sort and remove buttons</label>
-            <input @bind="_visibleSortRemove" id="SortAndRemove" type="checkbox"/>
-            <br/>
+            @* Custom Font *@
+            <label for="fontName">Font name</label>
+            <input @bind="_fontName" id="fontName"/>
+            <button @onclick="OnClickLoadFont">Try to load from Google Fonts</button>
+
+            @if (!String.IsNullOrWhiteSpace(_fontResponse))
+            {
+                <p>@_fontResponse</p>
+            }
+            else
+            {
+                <br/>
+            }
+
             @* Week number visibility *@
             <label for="WeekNumbers">Show week numbers</label>
             <input @bind="_visibleWeekNumbers" id="WeekNumbers" type="checkbox"/>
@@ -63,10 +73,19 @@
             <label for="csvFilePicker"></label>
             <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv"/>
             <br/>
-            @* Render all *@
-            <button @onclick="RenderAllPeriods">Render all</button>
+            @if (_periodsToRender.Count > 0)
+            {
+                @* Render all *@
+                <button @onclick="RenderAllPeriods">Update the preview</button>
+            }
             @* Add period *@
             <button @onclick="AddBlankLpToList">Add new period</button>
+            <br/>
+
+            @* Sort and Remove button visibility *@
+            <label for="SortAndRemove">Sort and remove buttons</label>
+            <input @bind="_visibleSortRemove" id="SortAndRemove" type="checkbox"/>
+            <br/>
 
             @* The List *@
             <ul id="lpList">
@@ -135,19 +154,31 @@
                             @* Start date *@
                             <input type="date"
                                    @bind:get="GetFromDateValue(tI)"
-                                   @bind:set="(newValue) => { SetFromDateValue(newValue, tI); OnChangedDate(tI); }"/>
+                                   @bind:set="async (newValue) => { await SetFromDateValue(newValue, tI); await OnChangedDate(tI); }"/>
 
                             @* End date *@
                             <input type="date"
                                    @bind:get="GetToDateValue(tI)"
-                                   @bind:set="(newValue) => { SetToDateValue(newValue, tI); OnChangedDate(tI); }"/>
+                                   @bind:set="async (newValue) => { await SetToDateValue(newValue, tI); await OnChangedDate(tI); }"/>
 
                             @* Color *@
-                            <input type="color" value=@period.SkiaColor.ToString().Remove(1, 2)
-                                   @onchange="(e) => OnChangedPeriodColor(e, tI)"/>
+                            <input type="color" @bind=@period.SkiaColor>
 
                             @* Name *@
-                            <input value=@period.NameOfEvent/>
+                            <input @bind=@period.NameOfEvent/>
+                            <Dropdown>
+                                <DropdownToggleButton>@period.NamePlacementStrat</DropdownToggleButton>
+                                <DropdownMenu>
+                                    <DropdownHeader>Placement</DropdownHeader>
+                                    @foreach (var strat in Enum.GetValues<NameStrategy>())
+                                    {
+                                        <DropdownItem @onclick="() => { period.NamePlacementStrat = strat; }">
+                                            @strat
+                                        </DropdownItem>
+                                    }
+                                </DropdownMenu>
+                            </Dropdown>
+
                         </li>
                         i++;
                     }
@@ -165,4 +196,8 @@
 
     <button @onclick="DownloadToFile">Download</button>
     <button @onclick="RandomizeAllColors">Randomize All Colors</button>
+    <button @onclick="async () => { if (_imgBytes != null) await ImageDb.AddImageToDb(_imgBytes); }">
+        Upload preview image to database
+    </button>
+
 </div>
