@@ -14,13 +14,6 @@ public partial class Samples
     protected override async Task OnInitializedAsync()
     {
         var imgList = await ImageDb!.GetXImages(40);
-        if (imgList is {Count: > 0})
-        {
-            _images = imgList;
-        }
-        else
-        {
-            _images = [];
-        }
+        _images = imgList is {Count: > 0} ? imgList : [];
     }
 }
