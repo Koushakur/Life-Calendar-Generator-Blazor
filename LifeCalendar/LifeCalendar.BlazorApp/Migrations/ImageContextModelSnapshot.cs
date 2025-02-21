@@ -23,7 +23,7 @@ namespace LifeCalendar.BlazorApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<byte[]>("Image")
+                    b.Property<byte[]>("ImageData")
                         .IsRequired()
                         .HasColumnType("BLOB");
 

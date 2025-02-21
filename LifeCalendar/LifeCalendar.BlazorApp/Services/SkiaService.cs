@@ -135,7 +135,8 @@ public class SkiaService
     public string RandomColorString()
     {
         var rnd = new Random();
-        return SKColor.FromHsl(rnd.Next(0, 360), rnd.Next(40, 80), rnd.Next(40, 90)).ToString();
+        var colStr = SKColor.FromHsl(rnd.Next(0, 360), rnd.Next(40, 80), rnd.Next(40, 90)).ToString();
+        return colStr.Remove(1, 2);
     }
 
     public SKColor RandomColorSkColor()

@@ -6,14 +6,27 @@
 <div class="container">
 
 
-    @if (images == null)
+    @if (_images == null)
     {
-        <p>Some images will go here</p>
+        <p>Loading images</p>
     }
     else
     {
-        foreach (var image in images)
+        if (_images.Count > 0)
         {
+            <div class="imageGrid">
+                @foreach (var image in _images)
+                {
+                    var base64Data = Convert.ToBase64String(image.ImageData.ToArray());
+                    var pngSrc = $"data:image/png;base64,{base64Data}";
+                    <img alt="" src="@pngSrc"/>
+                }
+
+            </div>
+        }
+        else
+        {
+            <p>No images found</p>
         }
     }
 

@@ -17,6 +17,8 @@ using Newtonsoft.Json;
 //TODO: Auto-update innan man genererat gör bara blank image men en period
 //TODO: Fixa manuel year entry, fuckar upp earliest year
 
+//TODO: Confirmation window for saving to db
+
 namespace LifeCalendar.BlazorApp.Components.Pages;
 
 public class EntryInfo
@@ -45,7 +47,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
     [Inject] IJSRuntime JS { get; set; } = null!;
     private IJSObjectReference? _jsFuncs;
     [Inject] SkiaService Skia { get; set; } = null!;
-    [Inject] ImageDbService ImageDb { get; set; } = null!;
+    [Inject] ImageDbService? ImageDb { get; set; }
     [Inject] ISessionStorageService SessionStorage { get; set; } = null!;
 
     private ElementReference _imageContainer;

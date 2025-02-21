@@ -3,24 +3,24 @@ using Microsoft.AspNetCore.Components;
 
 namespace LifeCalendar.BlazorApp.Components.Pages;
 
+//TODO: Open larger preview window when clicking on image
+
 public partial class Samples
 {
-    [Inject] ImageDbService ImageDb { get; set; } = null!;
+    [Inject] ImageDbService? ImageDb { get; set; }
 
-    List<ImageEntity> images = null!;
-
-    public Samples()
-    {
-        ;
-    }
+    private List<ImageEntity>? _images;
 
     protected override async Task OnInitializedAsync()
     {
-        var imgs = await ImageDb.GetAllImages();
-        // if (imgs.Count > 0)
-        // {
-        //     images = imgs;
-        // }
-        ;
+        var imgList = await ImageDb!.GetXImages(40);
+        if (imgList is {Count: > 0})
+        {
+            _images = imgList;
+        }
+        else
+        {
+            _images = [];
+        }
     }
 }

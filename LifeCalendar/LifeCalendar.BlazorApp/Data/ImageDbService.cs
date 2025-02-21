@@ -3,10 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeCalendar.BlazorApp.Data;
 
-public class ImageDbService
+public class ImageDbService(IDbContextFactory<ImageContext> dbContextFactory)
 {
-    [Inject] IDbContextFactory<ImageContext> _dbContextFactory { get; set; } = null!;
-    // ImageContext _dbContext;
+    IDbContextFactory<ImageContext> _dbContextFactory { get; set; } = dbContextFactory;
 
     public async Task<bool> AddImageToDb(byte[] imageData)
     {
@@ -14,14 +13,10 @@ public class ImageDbService
         {
             await using var context = await _dbContextFactory.CreateDbContextAsync();
 
-            // var tEntity = new ImageEntity(
-            //     Guid.NewGuid(),
-            //     imageData
-            // );
             var tEntity = new ImageEntity
             {
                 Id = Guid.NewGuid(),
-                Image = imageData
+                ImageData = imageData
             };
 
             context.Add(tEntity);
@@ -42,7 +37,24 @@ public class ImageDbService
         try
         {
             await using var context = await _dbContextFactory.CreateDbContextAsync();
-            return await context.Images.ToListAsync();
+            var list = await context.Images!.ToListAsync();
+            return list;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+        return null!;
+    }
+
+    public async Task<List<ImageEntity>> GetXImages(int count)
+    {
+        try
+        {
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            var list = await context.Images!.Take(count).ToListAsync();
+            return list;
         }
         catch (Exception e)
         {
@@ -57,7 +69,7 @@ public class ImageDbService
         try
         {
             await using var context = await _dbContextFactory.CreateDbContextAsync();
-            return context.Images.FirstOrDefault(x => x.Id == id)!;
+            return context.Images!.FirstOrDefault(x => x.Id == id)!;
         }
 
         catch (Exception e)
