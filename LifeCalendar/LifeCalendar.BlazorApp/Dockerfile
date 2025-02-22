@@ -41,6 +41,10 @@ WORKDIR /app
 # Kopiera publicerade filer
 COPY --from=publish /app/publish .
 
+# Skapa data- och templates-kataloger
+RUN mkdir -p Data
+RUN chmod -R a+rwx Data/
+
 # Installera curl
 USER root
 RUN apt-get update && apt-get install -y curl
