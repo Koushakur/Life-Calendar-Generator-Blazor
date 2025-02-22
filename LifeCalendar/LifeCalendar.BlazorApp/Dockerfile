@@ -25,7 +25,7 @@ RUN dotnet restore "$PROJECT_NAME/$PROJECT_NAME.csproj"
 COPY . .
 
 # Felsök: Lista alla filer i /src för att säkerställa att lösningen finns där
-#RUN ls -R /app
+RUN ls -R /app
 
 # Bygg projektet
 RUN dotnet build "LifeCalendar/$PROJECT_NAME/$PROJECT_NAME.csproj" -c $BUILD_CONFIGURATION -o /app/build
