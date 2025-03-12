@@ -1,1 +1,26 @@
-﻿
+﻿.container {
+   h1 {
+      padding-top: 50px;
+      padding-bottom: 30px;
+   }
+
+   .flexbox {
+      display: flex;
+      gap: 50px;
+
+      .textContainer {
+         //width: 100%;
+      }
+
+      .previewContainer {
+         outline: 1px solid black;
+
+         .sample {
+            max-width: 20vw;
+            object-fit: contain;
+         }
+      }
+
+   }
+
+}

@@ -90,8 +90,25 @@ header .container {
 
 html,
 body {
+  height: 100%;
   margin: 0px;
-  background-color: #e5eff3;
+  background-image: linear-gradient(#e5eff3, white);
+}
+
+.container h1 {
+  padding-top: 50px;
+  padding-bottom: 30px;
+}
+.container .flexbox {
+  display: flex;
+  gap: 50px;
+}
+.container .flexbox .previewContainer {
+  outline: 1px solid black;
+}
+.container .flexbox .previewContainer .sample {
+  max-width: 20vw;
+  object-fit: contain;
 }
 
 .container .main {
@@ -99,9 +116,9 @@ body {
   display: flex;
 }
 .container .main .UI {
-  width: fit-content;
   text-wrap: nowrap;
   margin-right: 50px;
+  width: 20%;
 }
 .container .main .UI #lpList {
   list-style-type: none;

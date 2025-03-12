@@ -9,7 +9,6 @@
 
     <ItemGroup>
         <Content Remove="compilerconfig.json"/>
-        <None Remove="Services\Fonts\Fuggles-Regular.ttf"/>
         <Content Include="..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
@@ -50,6 +49,7 @@
 
     <ItemGroup>
         <Folder Include="Data\"/>
+        <Folder Include="wwwroot\images\"/>
     </ItemGroup>
 
 
