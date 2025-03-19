@@ -8,6 +8,7 @@ using CsvHelper;
 using CsvHelper.Configuration.Attributes;
 using LifeCalendar.BlazorApp.Data;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Routing;
 using Newtonsoft.Json;
 
 //TODO: Kolla hur saker går sönder om earliestYear ändras iom datumändring
@@ -49,6 +50,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
     [Inject] SkiaService Skia { get; set; } = null!;
     [Inject] ImageDbService? ImageDb { get; set; }
     [Inject] ISessionStorageService SessionStorage { get; set; } = null!;
+    [Inject] NavigationManager NavigationManager { get; set; } = null!;
 
     private ElementReference _imageContainer;
 
@@ -95,8 +97,10 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private string _title = "Life Calendar";
 
+    private bool _showAdvancedOptions = false;
+
     private bool _autoUpdate = false;
-    private bool _visibleSortRemove = false;
+    private bool _visibleSortRemove = true;
     private bool _visibleBoundaryEdit = false;
     private bool _visibleTitle = true;
     private bool _visibleWeekNumbers = true;
@@ -156,6 +160,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
     {
         if (firstRender)
         {
+            NavigationManager.LocationChanged += OnChangingLocation;
+
             _jsFuncs = await JS.InvokeAsync<IJSObjectReference>("import",
                 "./Components/Pages/LifeCalendarApp.razor.js");
 
@@ -592,16 +598,31 @@ public partial class LifeCalendarApp : IAsyncDisposable
         await PartialReRender(index);
     }
 
-    #endregion
-
-    async ValueTask IAsyncDisposable.DisposeAsync()
+    private async void OnChangingLocation(object? sender, LocationChangedEventArgs e)
     {
-        if (_periodsToRender.Count > 0)
+        //Leaving the page, time to save the list
+        if (_periodsToRender.Count <= 0) return;
+
+        try
         {
             var tJson = JsonConvert.SerializeObject(_periodsToRender);
             await SessionStorage.SetItemAsync("LifePeriods", tJson);
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
+    #endregion
+
+    private void SwapPeriods(int index1, int index2)
+    {
+        (_periodsToRender[index1], _periodsToRender[index2]) = (_periodsToRender[index2], _periodsToRender[index1]);
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
         if (_jsFuncs != null)
         {
             try

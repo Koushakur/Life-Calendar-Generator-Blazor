@@ -3,194 +3,190 @@
 @rendermode InteractiveServer
 
 <div class="container">
-    <h3>Life Calendar App Page</h3>
+    @* <h3>Life Calendar App Page</h3> *@
 
     <div class="main">
+        @* Auto-update, for now more trouble tha it's worth, consider it later *@
+        @* <label for="AutoUpdate">Auto-update every change</label> *@
+        @* <input @bind="_autoUpdate" id="AutoUpdate" type="checkbox"/> *@
+        @* <br/> *@
         <div class="UI">
 
-            @* Auto-update, for now more trouble tha it's worth, consider it later *@
-            @* <label for="AutoUpdate">Auto-update every change</label> *@
-            @* <input @bind="_autoUpdate" id="AutoUpdate" type="checkbox"/> *@
-            @* <br/> *@
-
-            @* Title visibility *@
-            <label for="VisibilityTitle">Show title</label>
-            <input @bind="_visibleTitle" id="VisibilityTitle" type="checkbox"/>
-            @if (_visibleTitle)
-            {
-                <input @bind="_title"/>
-            }
-            <br/>
-
-            @* Custom Font *@
-            <label for="fontName">Font name</label>
-            <input @bind="_fontName" id="fontName"/>
-            <button @onclick="OnClickLoadFont">Try to load from Google Fonts</button>
-
-            @if (!String.IsNullOrWhiteSpace(_fontResponse))
-            {
-                <p>@_fontResponse</p>
-            }
-            else
-            {
-                <br/>
-            }
-
-            @* Week number visibility *@
-            <label for="WeekNumbers">Show week numbers</label>
-            <input @bind="_visibleWeekNumbers" id="WeekNumbers" type="checkbox"/>
-            <br/>
-            @* Year number visibility *@
-            <label for="YearNumbers">Show year numbers</label>
-            <input @bind="_visibleYearNumbers" id="YearNumbers" type="checkbox"/>
-            <br/>
-            @* Boundary edit visibility *@
-            <label for="BoundaryEdit">Edit boundary</label>
-            <input @bind="_visibleBoundaryEdit" id="BoundaryEdit" type="checkbox"/>
-            @if (_visibleBoundaryEdit)
-            {
-                <br/>
-                <input @bind="_topBorder" @bind:after="UpdateBoundaryRect"/>
-                <input @bind="_leftBorder" @bind:after="UpdateBoundaryRect"/>
-                <input @bind="_rightBorder" @bind:after="UpdateBoundaryRect"/>
-                <input @bind="_bottomBorder" @bind:after="UpdateBoundaryRect"/>
-            }
-
-            @* Colors *@
-            <br/>
-            <label for="colorBackground">Background color</label>
-            <input id="colorBackground" type="color" value="@_colorBackground.ToString().Remove(1, 2)"
-                   @onchange="(e) => OnChangedColor(e, Colors.Background)"/>
-            <label for="colorCircle">| Circle color</label>
-            <input id="colorCircle" type="color" value="@_colorCircle.ToString().Remove(1, 2)"
-                   @onchange="(e) => OnChangedColor(e, Colors.Circles)"/>
-            <label for="colorText">| Text color</label>
-            <input id="colorText" type="color" value="@_colorText.ToString().Remove(1, 2)"
-                   @onchange="(e) => OnChangedColor(e, Colors.Text)"/>
-            <br/>
-
-            @* Upload CSV *@
-            <label for="csvFilePicker"></label>
+            <!-- Basic Options -->
+            <button class="mt-5" @onclick="AddBlankLpToList">Add new period</button>
             <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv"/>
-            <br/>
+
             @if (_periodsToRender.Count > 0)
             {
-                @* Render all *@
-                <button @onclick="RenderAllPeriods">Update the preview</button>
-            }
-            @* Add period *@
-            <button @onclick="AddBlankLpToList">Add new period</button>
-            <br/>
+                <br/>
+                <button class="mt-3" @onclick="RenderAllPeriods">Update preview</button>
 
-            @* Sort and Remove button visibility *@
-            <label for="SortAndRemove">Sort and remove buttons</label>
-            <input @bind="_visibleSortRemove" id="SortAndRemove" type="checkbox"/>
-            <br/>
-
-            @* The List *@
-            <ul id="lpList">
-                @{ var i = 0; }
-                @if (_periodsToRender.Count > 0)
+                @if (_imgBytes != null)
                 {
-                    @foreach (var period in _periodsToRender)
-                    {
-                        var tI = i;
-                        <li>
-                            @if (_visibleSortRemove)
+                    <button @onclick="DownloadToFile">Download image</button>
+                    <button @onclick="async () => { if (_imgBytes != null) await ImageDb.AddImageToDb(_imgBytes); }">
+                        Upload to showcase
+                    </button>
+                }
+
+                @* <label> *@
+                @*     <input type="checkbox" @bind="_visibleSortRemove"/> Sort and remove buttons *@
+                @* </label> *@
+
+                <br/>
+                <input class="mt-3" @bind="_title"/>
+                <label>
+                    <input type="checkbox" @bind="_visibleTitle"/> Display title
+                </label>
+
+                <br/>
+                <button class="mt-3" @onclick="() => _showAdvancedOptions = !_showAdvancedOptions">
+                    @(_showAdvancedOptions ? "Hide Advanced Options" : "Show Advanced Options")
+                </button>
+
+                @if (_showAdvancedOptions)
+                {
+                    <div class="border">
+                        <label><input type="number" @bind="_rows"/> Total amount of years</label>
+                        <br/>
+                        <label class="mt-1"><input type="checkbox" @bind="_visibleWeekNumbers"/> Show week
+                            numbers</label>
+                        <label><input type="checkbox" @bind="_visibleYearNumbers"/> Show year numbers</label>
+
+                        <div class="border">
+                            <h6>Circle Styling</h6>
+                            <label>Color:
+                                <input type="color"
+                                       @onchange="(e) => OnChangedColor(e, Colors.Circles)"/></label>
+                            <label>Radius: <input type="number" @bind="_circleRadius"/></label>
+                            <label>Stroke Width: <input type="number" @bind="_strokeWidth"/></label>
+                        </div>
+
+                        <div class="border">
+                            <h6>Document Colors</h6>
+                            <label>Background Color:
+                                <input type="color"
+                                       @onchange="(e) => OnChangedColor(e, Colors.Background)"/></label>
+                            <label>Text Color:
+                                <input type="color"
+                                       @onchange="(e) => OnChangedColor(e, Colors.Text)"/></label>
+                        </div>
+
+                        <div class="border">
+                            <h6>Margin</h6>
+                            <label>Top:
+                                <input type="number" @bind="_topBorder"
+                                       @bind:after="UpdateBoundaryRect"/></label>
+                            <label>Left:
+                                <input type="number" @bind="_leftBorder"
+                                       @bind:after="UpdateBoundaryRect"/></label>
+                            <label>Right:
+                                <input type="number" @bind="_rightBorder"
+                                       @bind:after="UpdateBoundaryRect"/></label>
+                            <label>Bottom:
+                                <input type="number" @bind="_bottomBorder"
+                                       @bind:after="UpdateBoundaryRect"/></label>
+                        </div>
+
+                        <div class="fontLoad border">
+                            <h6>Change font</h6>
+                            <p class="finePrint">Gets loaded from Google Fonts</p>
+                            <input @bind="_fontName" placeholder="Enter font name"/>
+                            <button @onclick="OnClickLoadFont">Try to load</button>
+                            @if (!String.IsNullOrWhiteSpace(_fontResponse))
                             {
-                                //Remove
-                                <button @onclick="() => _periodsToRender.RemoveAt(tI)" class="ButtonSortRemove">-
-                                </button>
-
-                                if (tI > 0)
-                                {
-                                    //Move to top
-                                    <button class="ButtonSortRemove"
-                                            @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); }">
-                                        &UpArrowBar;
-                                    </button>
-
-                                    //Move up
-                                    <button class="ButtonSortRemove"
-                                            @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI - 1]) = (_periodsToRender[tI - 1], _periodsToRender[tI]); }">
-                                        &uarr;
-                                    </button>
-                                }
-                                else
-                                {
-                                    //Topmost item can't be sorted upwards, fill out the space
-                                    if (_periodsToRender.Count != 1)
-                                    {
-                                        <span class="ButtonSortRemove"></span>
-                                        <span class="ButtonSortRemove"></span>
-                                    }
-                                }
-
-                                if (tI < _periodsToRender.Count - 1)
-                                {
-                                    //Move down
-                                    <button class="ButtonSortRemove"
-                                            @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI + 1]) = (_periodsToRender[tI + 1], _periodsToRender[tI]); }">
-                                        &darr;
-                                    </button>
-
-                                    //Move to bottom
-                                    <button class="ButtonSortRemove"
-                                            @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); }">
-                                        &DownArrowBar;
-                                    </button>
-                                }
-                                else
-                                {
-                                    //Bottommost item can't be sorted downwards, fill out space
-                                    if (_periodsToRender.Count != 1)
-                                    {
-                                        <span class="ButtonSortRemove"></span>
-                                        <span class="ButtonSortRemove"></span>
-                                    }
-                                }
+                                <p class="fontResponse">@_fontResponse</p>
                             }
+                        </div>
+                    </div>
+                }
 
-                            @* Start date *@
-                            <input type="date"
-                                   @bind:get="GetFromDateValue(tI)"
-                                   @bind:set="async (newValue) => { await SetFromDateValue(newValue, tI); await OnChangedDate(tI); }"/>
 
-                            @* End date *@
-                            <input type="date"
-                                   @bind:get="GetToDateValue(tI)"
-                                   @bind:set="async (newValue) => { await SetToDateValue(newValue, tI); await OnChangedDate(tI); }"/>
+                <!-- List of periods -->
+                <div class="border">
+                    <h6>List</h6>
+                    <ul id="lpList">
+                        @for (var i = 0; i < _periodsToRender.Count; i++)
+                        {
+                            var period = _periodsToRender[i];
+                            var tI = i;
+                            <li>
+                                @if (_visibleSortRemove)
+                                {
+                                    <button @onclick="() => _periodsToRender.RemoveAt(tI)" class="ButtonSortRemove">-
+                                    </button>
 
-                            @* Color *@
-                            <input type="color" @bind=@period.SkiaColor>
-
-                            @* Name *@
-                            <input @bind=@period.NameOfEvent/>
-                            <Dropdown>
-                                <DropdownToggleButton>@period.NamePlacementStrat</DropdownToggleButton>
-                                <DropdownMenu>
-                                    <DropdownHeader>Placement</DropdownHeader>
-                                    @foreach (var strat in Enum.GetValues<NameStrategy>())
+                                    if (tI > 0)
                                     {
-                                        <DropdownItem @onclick="() => { period.NamePlacementStrat = strat; }">
-                                            @strat
-                                        </DropdownItem>
+                                        <button class="ButtonSortRemove"
+                                                @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); }">
+                                            &UpArrowBar;
+                                        </button>
+                                        <button class="ButtonSortRemove"
+                                                @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI - 1]) = (_periodsToRender[tI - 1], _periodsToRender[tI]); }">
+                                            &uarr;
+                                        </button>
                                     }
-                                </DropdownMenu>
-                            </Dropdown>
+                                    else
+                                    {
+                                        if (_periodsToRender.Count != 1)
+                                        {
+                                            <span class="ButtonSortRemove"></span>
+                                            <span class="ButtonSortRemove"></span>
+                                        }
+                                    }
 
-                        </li>
-                        i++;
-                    }
-                }
-                else
-                {
-                    <p>To begin either press 'Add new period' or <a href="/howto#anchor-test">upload a .csv file with
-                            the data</a></p>
-                }
-            </ul>
+                                    if (tI < _periodsToRender.Count - 1)
+                                    {
+                                        <button class="ButtonSortRemove"
+                                                @onclick="() => { (_periodsToRender[tI], _periodsToRender[tI + 1]) = (_periodsToRender[tI + 1], _periodsToRender[tI]); }">
+                                            &darr;
+                                        </button>
+                                        <button class="ButtonSortRemove"
+                                                @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); }">
+                                            &DownArrowBar;
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        if (_periodsToRender.Count != 1)
+                                        {
+                                            <span class="ButtonSortRemove"></span>
+                                            <span class="ButtonSortRemove"></span>
+                                        }
+                                    }
+                                }
+
+                                <input type="date"
+                                       @bind:get="GetFromDateValue(tI)"
+                                       @bind:set="async (newValue) => { await SetFromDateValue(newValue, tI); await OnChangedDate(tI); }"/>
+
+                                <input type="date"
+                                       @bind:get="GetToDateValue(tI)"
+                                       @bind:set="async (newValue) => { await SetToDateValue(newValue, tI); await OnChangedDate(tI); }"/>
+
+                                <input type="color" @bind=@period.SkiaColor>
+                                <input @bind=@period.NameOfEvent/>
+                                <Dropdown>
+                                    <DropdownToggleButton>@period.NamePlacementStrat</DropdownToggleButton>
+                                    <DropdownMenu>
+                                        <DropdownHeader>Placement</DropdownHeader>
+                                        @foreach (var strat in Enum.GetValues<NameStrategy>())
+                                        {
+                                            <DropdownItem @onclick="() => { period.NamePlacementStrat = strat; }">
+                                                @strat
+                                            </DropdownItem>
+                                        }
+                                    </DropdownMenu>
+                                </Dropdown>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
 
         </div>
+
         <div @ref="_imageContainer" class="imageContainer"></div>
     </div>
 
