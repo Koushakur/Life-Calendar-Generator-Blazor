@@ -21,6 +21,11 @@ h1:focus {
    outline: none;
 }
 
+h3 {
+   padding-top: 50px;
+   padding-bottom: 30px;
+}
+
 .header-link {
    color: black;
    border-radius: 5px;
@@ -38,5 +43,37 @@ h1:focus {
 
 .finePrint {
    font-size: 0.75rem;
-   colr: gray;
+   color: gray;
+}
+
+.responseText {
+   display: inline;
+   margin-left: 10px;
+   animation: fadeOut 10s forwards;
+   opacity: 1;
+}
+
+@keyframes fadeOut {
+   0% {
+      opacity: 1;
+      visibility: visible;
+   }
+   70% {
+      opacity: 1;
+   }
+   100% {
+      opacity: 0;
+      visibility: hidden;
+   }
+}
+
+.unformattedBox {
+   outline: 1px solid rgba(0, 0, 0, 0.5);
+   width: fit-content;
+   //white-space: pre;
+   background-color: rgba(0, 0, 0, 0.1);
+   padding: 10px;
+   text-align: left;
+   border-radius: 10px;
+   line-height: 1.5;
 }

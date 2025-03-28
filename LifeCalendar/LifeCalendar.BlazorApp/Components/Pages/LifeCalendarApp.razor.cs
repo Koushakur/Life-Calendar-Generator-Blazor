@@ -70,8 +70,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
     private float _xSpacing;
     private float _ySpacing;
 
-    private SKColor _colorBackground = SKColors.White;
     private SKColor _colorCircle = SKColors.Black;
+    private SKColor _colorBackground = SKColors.White;
     private SKColor _colorText = SKColors.Black;
 
     private enum Colors
@@ -92,8 +92,12 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private int _earliestYear;
 
+    private string _inputOption = "manual";
+
     private string _fontName = "Atkinson Hyperlegible Next";
     private string _fontResponse = "";
+
+    private string _inputFileResponse = "";
 
     private string _title = "Life Calendar";
 
@@ -540,13 +544,24 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
+        _inputFileResponse = "";
+
         var tFile = e.File;
-        if (tFile.ContentType == "text/csv")
+        if (tFile.ContentType is "text/csv" or "text/plain")
         {
-            var mStream = new MemoryStream();
-            await tFile.OpenReadStream().CopyToAsync(mStream);
-            _periodsToRender = ReadFromCsvStream(mStream);
-            await RenderAllPeriods();
+            try
+            {
+                var mStream = new MemoryStream();
+                await tFile.OpenReadStream().CopyToAsync(mStream);
+                _periodsToRender = ReadFromCsvStream(mStream);
+                await RenderAllPeriods();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                _inputFileResponse =
+                    "Failed to read file. Make sure you choose the right file, it's either a .csv or .txt, and is formatted as per the How-To page";
+            }
         }
     }
 
@@ -619,6 +634,11 @@ public partial class LifeCalendarApp : IAsyncDisposable
     private void SwapPeriods(int index1, int index2)
     {
         (_periodsToRender[index1], _periodsToRender[index2]) = (_periodsToRender[index2], _periodsToRender[index1]);
+    }
+
+    private void InputOptionChanged(ChangeEventArgs e)
+    {
+        _inputOption = e.Value!.ToString()!;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

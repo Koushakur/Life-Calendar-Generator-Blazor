@@ -3,8 +3,56 @@
 
 <div class="container">
     <h3>How To</h3>
-    <p>Page for detailed instructions</p>
-    <a id="anchor-test"/>
+    <h4>Getting started</h4>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+        laborum.</p>
+    <br/>
+    <a id="csv-formatting"/>
     <h4>CSV File Formatting</h4>
-    <p>Text goes here later</p>
+    <p>A CSV file (Comma-Separated Values) is a simple type of file used to store data, much like a Excel spreadsheet.
+        It is more or less just a text file. It typically has a .csv file extension but a regular plain .txt file will
+        also work for this app</p>
+    <p>The most minimal yet functional in the web app this text file can be looks something like this:</p>
+    <div class="unformattedBox">
+        DateFrom,DateTo,Color,NameOfEvent<br/>
+        2000-04-08,2005-01-23,,
+    </div>
+
+    <ul class="mt-2">
+        <li>DateFrom: The start date of the period</li>
+        <li>DateTo: The end date of the period</li>
+        <ul>
+            <li>Dates must be in the format "YYYY-MM-DD", for example today's date would be @DateTime.Now.ToString("yyyy-MM-dd")</li>
+        </ul>
+        <li>Color (optional): The color that will fill in the circles.</li>
+        <ul>
+            <li>Must be written in the format "#RRGGBB" i.e hexadecimal color, for example #4F679E. You can read more
+                about it <a href="https://www.shutterstock.com/blog/how-hex-colors-work" target="_blank">here</a></li>
+            <li>If you do not specify a color a random one will be generated, which can be changed later</li>
+        </ul>
+        <li>NameOfEvent (optional): The name of the period.</li>
+    </ul>
+
+    <h5>Notes</h5>
+    <ul>
+        <li>The lack of spaces and the double comma in the simple example are both important</li>
+        <li>The list can be edited in the UI after being loaded</li>
+        <li>The time periods do not need to be in chronological order, but they will be processed in order. Meaning a
+            later
+            period in the list will be drawn on top of an earlier one if they overlap
+        </li>
+    </ul>
+
+    <p>A more complete example of a file:</p>
+    <div class="unformattedBox">
+        DateFrom,DateTo,Color,NameOfEvent<br/>
+        1982-08-09,1990-05-29,#4F679E,Youth<br/>
+        1990-05-30,2000-08-31,,Elementary school<br/>
+        2005-09-01,2008-03-07,#9D440E,<br/>
+        2008-03-08,2008-06-01,#16758E,High school
+    </div>
+
 </div>

@@ -3,7 +3,11 @@
 @rendermode InteractiveServer
 
 <div class="container">
-    @* <h3>Life Calendar App Page</h3> *@
+    <h3>Life Calendar Generator</h3>
+    <p>To get started there's two options: Manually adding life periods or uploading a csv file</p>
+    <p>There's no difference to the end result, the only difference being if you're more comfortable using a UI or a
+        text editor</p>
+    <p>For explanations of the options see the <a href="/howto">How-To page</a></p>
 
     <div class="main">
         @* Auto-update, for now more trouble tha it's worth, consider it later *@
@@ -13,10 +17,28 @@
         <div class="UI">
 
             <!-- Basic Options -->
-            <button class="mt-5" @onclick="AddBlankLpToList">Add new period</button>
-            <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv"/>
+            <label><input type="radio" name="inputOption" value="manual" checked="checked"
+                          @onchange="(e) => InputOptionChanged(e)"/> Manually add periods</label><br/>
+            <label><input type="radio" name="inputOption" value="csv" @onchange="(e) => InputOptionChanged(e)"/> Upload
+                csv
+                file</label><br/>
+            <br/>
+            @switch (_inputOption)
+            {
+                case "manual":
+                    <button @onclick="AddBlankLpToList">Add new period</button>
+                    break;
+                case "csv":
+                    <InputFile id="csvFilePicker" OnChange="OnInputFileChange" accept=".csv,.txt"/>
+                    @if (!String.IsNullOrWhiteSpace(_inputFileResponse))
+                    {
+                        <p class="responseText">@_inputFileResponse</p>
+                    }
 
-            @if (_periodsToRender.Count > 0)
+                    break;
+            }
+
+            @if (_periodsToRender != null && _periodsToRender.Count > 0)
             {
                 <br/>
                 <button class="mt-3" @onclick="RenderAllPeriods">Update preview</button>
@@ -56,7 +78,7 @@
                         <div class="border">
                             <h6>Circle Styling</h6>
                             <label>Color:
-                                <input type="color"
+                                <input type="color" value="@_colorCircle.ToString().Remove(1, 2)"
                                        @onchange="(e) => OnChangedColor(e, Colors.Circles)"/></label>
                             <label>Radius: <input type="number" @bind="_circleRadius"/></label>
                             <label>Stroke Width: <input type="number" @bind="_strokeWidth"/></label>
@@ -65,10 +87,10 @@
                         <div class="border">
                             <h6>Document Colors</h6>
                             <label>Background Color:
-                                <input type="color"
+                                <input type="color" value="@_colorBackground.ToString().Remove(1, 2)"
                                        @onchange="(e) => OnChangedColor(e, Colors.Background)"/></label>
                             <label>Text Color:
-                                <input type="color"
+                                <input type="color" value="@_colorText.ToString().Remove(1, 2)"
                                        @onchange="(e) => OnChangedColor(e, Colors.Text)"/></label>
                         </div>
 
@@ -95,7 +117,7 @@
                             <button @onclick="OnClickLoadFont">Try to load</button>
                             @if (!String.IsNullOrWhiteSpace(_fontResponse))
                             {
-                                <p class="fontResponse">@_fontResponse</p>
+                                <p class="responseText">@_fontResponse</p>
                             }
                         </div>
                     </div>
@@ -190,10 +212,10 @@
         <div @ref="_imageContainer" class="imageContainer"></div>
     </div>
 
-    <button @onclick="DownloadToFile">Download</button>
-    <button @onclick="RandomizeAllColors">Randomize All Colors</button>
-    <button @onclick="async () => { if (_imgBytes != null) await ImageDb.AddImageToDb(_imgBytes); }">
-        Upload preview image to database
-    </button>
+    @* <button @onclick="DownloadToFile">Download</button> *@
+    @* <button @onclick="RandomizeAllColors">Randomize All Colors</button> *@
+    @* <button @onclick="async () => { if (_imgBytes != null) await ImageDb.AddImageToDb(_imgBytes); }"> *@
+    @*     Upload preview image to database *@
+    @* </button> *@
 
 </div>
