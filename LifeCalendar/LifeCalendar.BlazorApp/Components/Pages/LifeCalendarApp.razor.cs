@@ -50,7 +50,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
     [Inject] SkiaService Skia { get; set; } = null!;
     [Inject] ImageDbService? ImageDb { get; set; }
     [Inject] ISessionStorageService SessionStorage { get; set; } = null!;
-    [Inject] NavigationManager NavigationManager { get; set; } = null!;
+    // [Inject] NavigationManager NavigationManager { get; set; } = null!;
 
     private ElementReference _imageContainer;
 
@@ -164,7 +164,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
     {
         if (firstRender)
         {
-            NavigationManager.LocationChanged += OnChangingLocation;
+            // NavigationManager.LocationChanged += OnChangingLocation;
 
             _jsFuncs = await JS.InvokeAsync<IJSObjectReference>("import",
                 "./Components/Pages/LifeCalendarApp.razor.js");
@@ -529,7 +529,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
         }
     }
 
-    private void AddBlankLpToList()
+    private async Task AddBlankLpToList()
     {
         var tP = new LifePeriod
         {
@@ -538,6 +538,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
             SkiaColor = Skia.RandomColorString()
         };
         _periodsToRender.Add(tP);
+
+        await SaveListToSessionStorage();
     }
 
     #region Triggers
@@ -613,11 +615,17 @@ public partial class LifeCalendarApp : IAsyncDisposable
         await PartialReRender(index);
     }
 
-    private async void OnChangingLocation(object? sender, LocationChangedEventArgs e)
-    {
-        //Leaving the page, time to save the list
-        if (_periodsToRender.Count <= 0) return;
+    //Unnecessary now since it's saving right away on remove or add
+    // private async void OnChangingLocation(object? sender, LocationChangedEventArgs e)
+    // {
+    //     //Leaving the page, time to save the list
+    //     if (_periodsToRender.Count <= 0) return;
+    //
+    //     await SaveListToSessionStorage();
+    // }
 
+    private async Task SaveListToSessionStorage()
+    {
         try
         {
             var tJson = JsonConvert.SerializeObject(_periodsToRender);

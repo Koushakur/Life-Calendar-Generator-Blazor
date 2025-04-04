@@ -1,0 +1,71 @@
+﻿button {
+   border: 1px solid $color-header-background;
+   border-radius: 5px;
+   text-align: center;
+   background-color: $color-header-button;
+}
+
+input {
+   border: 1px solid $color-header-background;
+   border-radius: 5px;
+}
+
+input[type=text] {
+   padding-left: 5px;
+   height: $height-lifeperiod;
+}
+
+input[type=number] {
+   max-width: 50px;
+   text-align: justify;
+   height: $height-lifeperiod;
+}
+
+input[type=date] {
+   padding-left: 5px;
+   height: $height-lifeperiod;
+}
+
+input[type=color] {
+   vertical-align: middle;
+   border: 1px solid $color-header-background;
+   width: 40px;
+   height: $height-lifeperiod;
+   padding: 0;
+   cursor: pointer;
+}
+
+input[type=checkbox] {
+   position: relative;
+   appearance: none;
+   vertical-align: middle;
+
+   width: 18px;
+   height: 18px;
+   padding: 0px;
+
+   border: solid 2px $color-header-background;
+   border-radius: 3px;
+
+   &:hover {
+      background-color: darken($color-header-button, 10%);
+   }
+
+   &:checked {
+      background-color: darken($color-header-button, 15%);
+      color: white;
+
+      &:hover {
+         background-color: $color-header-background;
+      }
+
+      &::after {
+         content: "\2714";
+         font-size: 12px;
+         line-height: 0;
+         position: absolute;
+         top: 7px;
+         left: 2px;
+      }
+   }
+}

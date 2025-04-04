@@ -1,6 +1,6 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
-p {
+* {
    font-family: "Atkinson Hyperlegible", sans-serif;
 }
 
@@ -17,13 +17,13 @@ a {
    font-weight: 600;
 }
 
-h1:focus {
-   outline: none;
-}
-
-h3 {
+h2 {
    padding-top: 50px;
    padding-bottom: 30px;
+
+   &:focus {
+      outline: none;
+   }
 }
 
 .header-link {

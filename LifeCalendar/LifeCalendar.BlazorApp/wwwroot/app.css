@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 .container,
 .container-fluid,
@@ -40,7 +41,7 @@
     max-width: 1320px;
   }
 }
-p {
+* {
   font-family: "Atkinson Hyperlegible", sans-serif;
 }
 
@@ -57,13 +58,12 @@ a {
   font-weight: 600;
 }
 
-h1:focus {
-  outline: none;
-}
-
-h3 {
+h2 {
   padding-top: 50px;
   padding-bottom: 30px;
+}
+h2:focus {
+  outline: none;
 }
 
 .header-link {
@@ -115,6 +115,72 @@ h3 {
   line-height: 1.5;
 }
 
+button {
+  border: 1px solid #87bfd9;
+  border-radius: 5px;
+  text-align: center;
+  background-color: #E1F1FF;
+}
+
+input {
+  border: 1px solid #87bfd9;
+  border-radius: 5px;
+}
+
+input[type=text] {
+  padding-left: 5px;
+  height: 28px;
+}
+
+input[type=number] {
+  max-width: 50px;
+  text-align: justify;
+  height: 28px;
+}
+
+input[type=date] {
+  padding-left: 5px;
+  height: 28px;
+}
+
+input[type=color] {
+  vertical-align: middle;
+  border: 1px solid #87bfd9;
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+}
+
+input[type=checkbox] {
+  position: relative;
+  appearance: none;
+  vertical-align: middle;
+  width: 18px;
+  height: 18px;
+  padding: 0px;
+  border: solid 2px #87bfd9;
+  border-radius: 3px;
+}
+input[type=checkbox]:hover {
+  background-color: rgb(174, 217.2, 255);
+}
+input[type=checkbox]:checked {
+  background-color: rgb(148.5, 205.3, 255);
+  color: white;
+}
+input[type=checkbox]:checked:hover {
+  background-color: #87bfd9;
+}
+input[type=checkbox]:checked::after {
+  content: "✔";
+  font-size: 12px;
+  line-height: 0;
+  position: absolute;
+  top: 7px;
+  left: 2px;
+}
+
 header {
   background-color: #87bfd9;
   padding: 16px 0;
@@ -130,9 +196,10 @@ header .container {
 
 html,
 body {
-  height: 100%;
-  margin: 0px;
+  margin: 0;
+  height: auto;
   background-image: linear-gradient(#e5eff3, white);
+  min-height: 100vh;
 }
 
 .container h1 {
@@ -155,55 +222,47 @@ body {
   padding-top: 50px;
   padding-bottom: 30px;
 }
-.container .main {
-  width: 100%;
+.container .appContainer {
+  width: 10%;
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.container .main .UI {
+.container .appContainer .UI {
   text-wrap: nowrap;
   margin-right: 50px;
   width: 100%;
 }
-.container .main .UI .border {
+.container .appContainer .UI .border {
   border: 1px solid black;
   outline: none;
   padding: 10px;
 }
-.container .main .UI input[type=number] {
-  max-width: 50px;
-  text-align: justify;
-}
-.container .main .UI .fontLoad input {
+.container .appContainer .UI .fontLoad input {
   min-width: 300px;
 }
-.container .main .UI input[type=color] {
-  vertical-align: middle;
-}
-.container .main .UI #lpList {
+.container .appContainer .UI #lpList {
   list-style-type: none;
   margin-left: -25px;
 }
-.container .main .UI .ButtonSortRemove {
-  height: 22px;
+.container .appContainer .UI .ButtonSortRemoveContainer {
+  display: inline-flex;
+  gap: 3px;
+}
+.container .appContainer .UI .ButtonSortRemoveContainer .ButtonSortRemove {
+  height: 28px;
   width: 16px;
-  margin-right: 2px;
   padding: 0;
-  text-align: center;
+  margin: 0;
 }
-.container .main .UI .ButtonSortRemove:is(span) {
-  display: inline-block;
-  width: 14px;
-}
-.container .main .imageContainer {
+.container .appContainer .imageContainer {
   margin-top: 2vh;
   width: 25%;
 }
-.container .main .imageContainer img {
+.container .appContainer .imageContainer img {
   object-fit: contain;
   max-width: 50vw;
   max-height: 70vh;
-  outline: 1px solid black;
+  outline: 1px solid #87bfd9;
   padding: 1px;
 }
 

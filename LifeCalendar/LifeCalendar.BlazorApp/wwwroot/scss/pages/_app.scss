@@ -4,11 +4,11 @@
       padding-bottom: 30px;
    }
 
-   .main {
-      width: 100%;
+   .appContainer {
+      width: 10%;
       display: grid;
       grid-template-columns: 1fr 1fr;
-
+      //margin-bottom: 90vh;
 
       .UI {
          //width: fit-content;
@@ -22,21 +22,10 @@
             padding: 10px;
          }
 
-         input[type="number"] {
-            max-width: 50px;
-            text-align: justify;
-         }
-
          .fontLoad {
             input {
                min-width: 300px;
             }
-
-
-         }
-
-         input[type="color"] {
-            vertical-align: middle;
          }
 
          #lpList {
@@ -44,16 +33,15 @@
             margin-left: -25px;
          }
 
-         .ButtonSortRemove {
-            height: 22px;
-            width: 16px;
-            margin-right: 2px;
-            padding: 0;
-            text-align: center;
+         .ButtonSortRemoveContainer {
+            display: inline-flex;
+            gap: 3px;
 
-            &:is(span) {
-               display: inline-block;
-               width: 14px;
+            .ButtonSortRemove {
+               height: $height-lifeperiod;
+               width: 16px;
+               padding: 0;
+               margin: 0;
             }
          }
       }
@@ -68,7 +56,7 @@
             max-width: 50vw;
             max-height: 70vh;
 
-            outline: 1px solid black;
+            outline: 1px solid $color-header-background;
             padding: 1px;
          }
       }
