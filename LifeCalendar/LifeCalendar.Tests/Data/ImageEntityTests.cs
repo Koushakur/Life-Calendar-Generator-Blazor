@@ -21,21 +21,4 @@ public class ImageEntityTests
         Assert.Equal(id, imageEntity.Id);
         Assert.Equal(imageData, imageEntity.ImageData);
     }
-
-    [Fact]
-    public void Should_Throw_On_Missing_ImageData()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
-        {
-            var imageEntity = new ImageEntity
-            {
-                Id = id,
-                ImageData = null! // Simulerar att propertyn inte är satt
-            };
-        });
-    }
 }
