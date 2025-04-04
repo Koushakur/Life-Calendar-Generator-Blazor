@@ -11,6 +11,7 @@ public class ImageContext : DbContext
         _configuration = configuration;
     }
     
+    // johan kod
     public ImageContext(DbContextOptions<ImageContext> options) : base(options)
     {
     }
