@@ -10,6 +10,11 @@ public class ImageContext : DbContext
     {
         _configuration = configuration;
     }
+    
+    public ImageContext(DbContextOptions<ImageContext> options) : base(options)
+    {
+    }
+
 
     public DbSet<ImageEntity>? Images { get; set; }
 
