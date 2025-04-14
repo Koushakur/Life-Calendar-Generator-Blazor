@@ -96,22 +96,6 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private List<LifePeriod> _periodsToRender = [];
 
-    private DateTime GetFromDateValue(int index) => _periodsToRender[index].DateFrom;
-
-    private void SetFromDateValue(DateTime newValue, int index)
-    {
-        _periodsToRender[index].DateFrom = newValue;
-        CheckAndSetEarliestYear();
-    }
-
-    private DateTime GetToDateValue(int index) => _periodsToRender[index].DateTo;
-
-    private void SetToDateValue(DateTime newValue, int index)
-    {
-        _periodsToRender[index].DateTo = newValue;
-        CheckAndSetEarliestYear();
-    }
-
     #endregion
 
     public LifeCalendarApp()

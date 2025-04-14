@@ -14,7 +14,7 @@ public class HomePageTests : TestContext
         component.MarkupMatches(@"
             <div class=""container"">
                 <h2>Welcome to Your Life Calendar</h2>
-                <div class=""flesxbox"">
+                <div class=""flexbox"">
                     <div class=""textContainer"">
                         <p>Time flies—but what if you could see your whole life at a glance? A Life Calendar breaks down your years into weeks, giving you a visual way to track progress, set goals, and reflect on the big picture.</p>
                         <p>Whether you're planning for the future, appreciating the present, or gaining perspective on how you spend your time, our Life Calendar app makes it easy to create and customize your own. Start mapping your life today!</p>

@@ -184,13 +184,9 @@
                                     }
                                 </div>
 
-                                <input type="date"
-                                       @bind:get="GetFromDateValue(tI)"
-                                       @bind:set="(newValue) => { SetFromDateValue(newValue, tI); }"/>
+                                <input type="date" @bind=_periodsToRender[tI].DateFrom/>
 
-                                <input type="date"
-                                       @bind:get="GetToDateValue(tI)"
-                                       @bind:set="(newValue) => { SetToDateValue(newValue, tI); }"/>
+                                <input type="date" @bind=_periodsToRender[tI].DateTo/>
 
                                 <input type="color" @bind=@period.SkiaColor>
                                 @if (_visibleEventNames)
