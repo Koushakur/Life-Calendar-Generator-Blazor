@@ -11,14 +11,9 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
 using Newtonsoft.Json;
 
-//TODO: Kolla hur saker går sönder om earliestYear ändras iom datumändring
-//TODO: Render empty fill incase earliest date should be empty when it wasn't before
-//TODO: När week nums ska visas visa UI för att editera looken
-
-//TODO: Auto-update innan man genererat gör bara blank image men en period
-//TODO: Fixa manuel year entry, fuckar upp earliest year
-
-//TODO: Confirmation window for saving to db
+//TODO: Confirmation window before saving to db
+//TODO: When rendering event name check if next row has space if the first one does not
+//TODO: Update font/typeface settings for event name rendering
 
 namespace LifeCalendar.BlazorApp.Components.Pages;
 
@@ -38,7 +33,7 @@ public class LifePeriod
     public string SkiaColor;
 
     public string NameOfEvent = "";
-    public LifeCalendarApp.NameStrategy NamePlacementStrat = LifeCalendarApp.NameStrategy.Auto;
+    public bool Hidden = false;
 }
 
 public partial class LifeCalendarApp : IAsyncDisposable
@@ -50,7 +45,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
     [Inject] SkiaService Skia { get; set; } = null!;
     [Inject] ImageDbService? ImageDb { get; set; }
     [Inject] ISessionStorageService SessionStorage { get; set; } = null!;
-    // [Inject] NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] NavigationManager NavigationManager { get; set; } = null!;
 
     private ElementReference _imageContainer;
 
@@ -81,15 +76,6 @@ public partial class LifeCalendarApp : IAsyncDisposable
         Text
     }
 
-    public enum NameStrategy
-    {
-        Auto,
-        None,
-        Start,
-        Middle,
-        CenterMass
-    }
-
     private int _earliestYear;
 
     private string _inputOption = "manual";
@@ -103,54 +89,27 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private bool _showAdvancedOptions = false;
 
-    private bool _autoUpdate = false;
-    private bool _visibleSortRemove = true;
-    private bool _visibleBoundaryEdit = false;
     private bool _visibleTitle = true;
     private bool _visibleWeekNumbers = true;
     private bool _visibleYearNumbers = true;
-    private bool _visibleEventNames = true;
+    private bool _visibleEventNames = false;
 
     private List<LifePeriod> _periodsToRender = [];
 
     private DateTime GetFromDateValue(int index) => _periodsToRender[index].DateFrom;
 
-    private async Task SetFromDateValue(DateTime newValue, int index)
+    private void SetFromDateValue(DateTime newValue, int index)
     {
-        if (Math.Floor(Math.Log10(newValue.Year) + 1) < 4) return;
-
-        if (_autoUpdate)
-        {
-            RenderSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index], makeBlank: true);
-
-            _periodsToRender[index].DateFrom = newValue;
-            CheckAndSetEarliestYear();
-            await PartialReRender(index);
-        }
-        else
-        {
-            _periodsToRender[index].DateFrom = newValue;
-            CheckAndSetEarliestYear();
-        }
+        _periodsToRender[index].DateFrom = newValue;
+        CheckAndSetEarliestYear();
     }
 
     private DateTime GetToDateValue(int index) => _periodsToRender[index].DateTo;
 
-    private async Task SetToDateValue(DateTime newValue, int index)
+    private void SetToDateValue(DateTime newValue, int index)
     {
-        if (_autoUpdate)
-        {
-            RenderSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index], makeBlank: true);
-
-            _periodsToRender[index].DateTo = newValue;
-            CheckAndSetEarliestYear();
-            await PartialReRender(index);
-        }
-        else
-        {
-            _periodsToRender[index].DateTo = newValue;
-            CheckAndSetEarliestYear();
-        }
+        _periodsToRender[index].DateTo = newValue;
+        CheckAndSetEarliestYear();
     }
 
     #endregion
@@ -164,7 +123,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
     {
         if (firstRender)
         {
-            // NavigationManager.LocationChanged += OnChangingLocation;
+            NavigationManager.LocationChanged += OnChangingLocation;
 
             _jsFuncs = await JS.InvokeAsync<IJSObjectReference>("import",
                 "./Components/Pages/LifeCalendarApp.razor.js");
@@ -215,10 +174,6 @@ public partial class LifeCalendarApp : IAsyncDisposable
             Skia.DrawCircleMatrix(canvas, _boundaryRect, 52, _rows, _circleRadius, circlePaint);
 
             RenderEventNames(canvas);
-        }
-        else
-        {
-            // Empty list, give warning?
         }
 
         await RenderSurfaceToImagePreview(Skia.Surface!);
@@ -296,14 +251,14 @@ public partial class LifeCalendarApp : IAsyncDisposable
         }
     }
 
-    private async Task PartialReRender(int index)
-    {
-        CheckAndSetEarliestYear();
-
-        RenderSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index]);
-
-        await RenderSurfaceToImagePreview(Skia.Surface);
-    }
+    // private async Task PartialReRender(int index)
+    // {
+    //     CheckAndSetEarliestYear();
+    //
+    //     RenderSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index]);
+    //
+    //     await RenderSurfaceToImagePreview(Skia.Surface);
+    // }
 
     private async Task RenderSurfaceToImagePreview(SKSurface surface)
     {
@@ -370,63 +325,32 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
         foreach (var period in _periodsToRender)
         {
+            if (!period.Hidden)
+                continue;
+
             Skia._defaultFont.MeasureText(period.NameOfEvent, out var textMeasureRect);
             var centeringOffset = ((_circleRadius * 2) - textMeasureRect.Height) / 2;
 
             var tFromWeek =
                 tCulture.Calendar.GetWeekOfYear(period.DateFrom, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-            var tToWeek =
-                tCulture.Calendar.GetWeekOfYear(period.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+            // var tToWeek =
+            //     tCulture.Calendar.GetWeekOfYear(period.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
 
             float startRow = period.DateFrom.Year - _earliestYear;
 
-            float yPos = 0;
-            float xPos = 0;
-
-            float drawRow = 0;
-
             var align = SKTextAlign.Left;
 
-            NameStrategy tStrat;
+            // Measure name width
+            // Do math to see if its FromWeek is too late to contain the text
+            var spaceForName = ((52 - tFromWeek) * (_circleRadius * 2) + _xSpacing) + _circleRadius;
 
-            if (period.NamePlacementStrat == NameStrategy.Auto)
-                tStrat = EstimateNameStrategy(period);
-            else
-                tStrat = period.NamePlacementStrat;
-
-            switch (tStrat)
+            if (textMeasureRect.Width > spaceForName)
             {
-                case NameStrategy.Start:
-
-                    // Measure name width
-                    // Do math to see if its FromWeek is too late to contain the text
-                    var spaceForName = ((52 - tFromWeek) * (_circleRadius * 2) + _xSpacing) + _circleRadius;
-
-                    if (textMeasureRect.Width > spaceForName)
-                    {
-                        continue;
-                    }
-
-                    yPos = _boundaryRect.Top + (_circleRadius * 2) - centeringOffset + (_ySpacing * (startRow));
-                    xPos = _boundaryRect.Left + _circleRadius + (_xSpacing * (tFromWeek - 1));
-
-                    break;
-
-                case NameStrategy.Middle:
-                    drawRow = startRow + (float) (period.DateTo.Year - period.DateFrom.Year) / 2;
-
-                    yPos = _boundaryRect.Top + (_circleRadius * 2) - centeringOffset + (_ySpacing * (drawRow));
-                    xPos = _boundaryRect.MidX;
-
-                    align = SKTextAlign.Center;
-                    break;
-
-                case NameStrategy.CenterMass:
-                    break;
-
-                default:
-                    continue;
+                continue;
             }
+
+            var yPos = _boundaryRect.Top + (_circleRadius * 2) - centeringOffset + (_ySpacing * (startRow));
+            var xPos = _boundaryRect.Left + _circleRadius + (_xSpacing * (tFromWeek - 1));
 
             Skia.DrawText(canvas, period.NameOfEvent, xPos, yPos, alignment: align);
         }
@@ -440,7 +364,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
         {
             await _jsFuncs!.InvokeVoidAsync(
                 "downloadFileFromStream",
-                $"Image.png",
+                $"{(_title != "" ? _title : "Life Calendar")}.png",
                 new DotNetStreamReference(new MemoryStream(_imgBytes))
             );
         }
@@ -486,17 +410,6 @@ public partial class LifeCalendarApp : IAsyncDisposable
         return tList;
     }
 
-    private NameStrategy EstimateNameStrategy(LifePeriod period)
-    {
-        var timeDiff = period.DateTo - period.DateFrom;
-        if (timeDiff.TotalDays < 90)
-        {
-            return NameStrategy.None;
-        }
-
-        return NameStrategy.Start;
-    }
-
     private static int CheckWeek(int week, int month)
     {
         if (week == 53)
@@ -507,6 +420,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private void CheckAndSetEarliestYear()
     {
+        _earliestYear = 0;
+
         foreach (var period in _periodsToRender)
         {
             if (period.DateFrom.Year < _earliestYear || _earliestYear == 0)
@@ -531,15 +446,37 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private async Task AddBlankLpToList()
     {
-        var tP = new LifePeriod
+        try
         {
-            DateFrom = DateTime.Now.AddYears(-5),
-            DateTo = DateTime.Now,
-            SkiaColor = Skia.RandomColorString()
-        };
-        _periodsToRender.Add(tP);
+            LifePeriod tP;
+            if (_periodsToRender == null! || _periodsToRender.Count == 0)
+            {
+                tP = new LifePeriod
+                {
+                    DateFrom = DateTime.Now.AddYears(-1),
+                    DateTo = DateTime.Now,
+                    SkiaColor = Skia.RandomColorString()
+                };
+            }
+            else
+            {
+                var lastPeriod = _periodsToRender.Last();
+                tP = new LifePeriod
+                {
+                    DateFrom = lastPeriod.DateTo.AddDays(1),
+                    DateTo = lastPeriod.DateTo.AddDays(1).AddYears(1),
+                    SkiaColor = Skia.RandomColorString()
+                };
+            }
 
-        await SaveListToSessionStorage();
+            _periodsToRender!.Add(tP);
+
+            await SaveListToSessionStorage();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
     #region Triggers
@@ -595,34 +532,15 @@ public partial class LifeCalendarApp : IAsyncDisposable
         }
     }
 
-    // private async Task OnChangedPeriodColor(ChangeEventArgs e, int index)
-    // {
-    //     _periodsToRender[index].SkiaColor = SKColor.Parse(e.Value!.ToString()).ToString().Remove(1, 2);
-    //
-    //     if (!_autoUpdate) return;
-    //
-    //     await PartialReRender(index);
-    // }
-
-    private async Task OnChangedDate(int index)
+    private async void OnChangingLocation(object? sender, LocationChangedEventArgs e)
     {
-        if (!_autoUpdate) return;
+        //Leaving the page, time to save the list
+        if (_periodsToRender.Count <= 0) return;
 
-        if (Math.Floor(Math.Log10(_periodsToRender[index].DateFrom.Year) + 1) < 4) return;
-
-        // BlankOutSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index], MakeBoundaryRect(), 32, 32);
-
-        await PartialReRender(index);
+        await SaveListToSessionStorage();
     }
 
-    //Unnecessary now since it's saving right away on remove or add
-    // private async void OnChangingLocation(object? sender, LocationChangedEventArgs e)
-    // {
-    //     //Leaving the page, time to save the list
-    //     if (_periodsToRender.Count <= 0) return;
-    //
-    //     await SaveListToSessionStorage();
-    // }
+    #endregion
 
     private async Task SaveListToSessionStorage()
     {
@@ -636,8 +554,6 @@ public partial class LifeCalendarApp : IAsyncDisposable
             Console.WriteLine(ex);
         }
     }
-
-    #endregion
 
     private void SwapPeriods(int index1, int index2)
     {

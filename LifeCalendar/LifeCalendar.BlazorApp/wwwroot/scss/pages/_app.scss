@@ -1,17 +1,11 @@
 ﻿.container {
-   h3 {
-      padding-top: 50px;
-      padding-bottom: 30px;
-   }
 
    .appContainer {
       width: 10%;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      //margin-bottom: 90vh;
 
       .UI {
-         //width: fit-content;
          text-wrap: nowrap;
          margin-right: 50px;
          width: 100%;
@@ -47,7 +41,7 @@
       }
 
       .imageContainer {
-         //margin-left: auto;
+         float: right;
          margin-top: 2vh;
          width: 25%;
 

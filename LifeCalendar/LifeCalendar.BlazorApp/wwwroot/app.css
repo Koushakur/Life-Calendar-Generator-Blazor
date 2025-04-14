@@ -218,10 +218,6 @@ body {
   object-fit: contain;
 }
 
-.container h3 {
-  padding-top: 50px;
-  padding-bottom: 30px;
-}
 .container .appContainer {
   width: 10%;
   display: grid;
@@ -255,6 +251,7 @@ body {
   margin: 0;
 }
 .container .appContainer .imageContainer {
+  float: right;
   margin-top: 2vh;
   width: 25%;
 }
