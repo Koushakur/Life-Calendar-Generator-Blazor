@@ -38,21 +38,22 @@
             {
                 <br/>
                 <div class="mt-3" style="display: flex; gap: 5px;">
-                    <button class="" @onclick="RenderAllPeriods">Update preview</button>
+                    <button class=@_updateBtnClass @onclick="RenderAllPeriods">
+                        @(_imgBytes == null ? "Create preview" : "Update preview")
+                    </button>
 
                     @if (_imgBytes != null)
                     {
                         <button @onclick="DownloadToFile">Download image</button>
-                        <button
-                            @onclick="async () => { if (_imgBytes != null) await ImageDb!.AddImageToDb(_imgBytes); }">
+                        <button @onclick="async () => { await UploadImageToDb(); }">
                             Upload to showcase
                         </button>
                     }
                 </div>
 
-                <input class="mt-3" type="text" @bind="_title"/>
+                <input class="mt-3" type="text" @bind="_title" @bind:after="OnAnyChange"/>
                 <label>
-                    <input type="checkbox" @bind="_visibleTitle"/> Display title
+                    <input type="checkbox" @bind="_visibleTitle" @bind:after="OnAnyChange"/> Display title
                 </label>
 
                 <br/>
@@ -67,10 +68,13 @@
                         <label><input type="number" @bind="_rows" @bind:after="UpdateBoundaryRect" class="mb-1"/> Total
                             amount of years</label>
                         <br/>
-                        <label class="mt-1"><input type="checkbox" @bind="_visibleWeekNumbers"/> Show week
+                        <label class="mt-1"><input type="checkbox" @bind="_visibleWeekNumbers"
+                                                   @bind:after="OnAnyChange"/> Show week
                             numbers</label>
-                        <label><input type="checkbox" @bind="_visibleYearNumbers"/> Show year numbers</label>
-                        <label class="mt-1"><input type="checkbox" @bind=@_visibleEventNames/> Show event names</label>
+                        <label><input type="checkbox" @bind="_visibleYearNumbers" @bind:after="OnAnyChange"/> Show year
+                            numbers</label>
+                        <label class="mt-1"><input type="checkbox" @bind=@_visibleEventNames @bind:after="OnAnyChange"/>
+                            Show event names</label>
 
                         @* Circle style *@
                         <div class="border mt-2">
@@ -78,8 +82,10 @@
                             <label>Color:
                                 <input type="color" value="@_colorCircle.ToString().Remove(1, 2)"
                                        @onchange="(e) => OnChangedColor(e, Colors.Circles)"/></label>
-                            <label>Radius: <input type="number" @bind="_circleRadius"/></label>
-                            <label>Stroke Width: <input type="number" @bind="_strokeWidth"/></label>
+                            <label>Radius: <input type="number" @bind="_circleRadius"
+                                                  @bind:after="OnAnyChange"/></label>
+                            <label>Stroke Width: <input type="number" @bind="_strokeWidth"
+                                                        @bind:after="OnAnyChange"/></label>
                         </div>
 
                         @* Doc colors *@
@@ -184,15 +190,16 @@
                                     }
                                 </div>
 
-                                <input type="date" @bind=_periodsToRender[tI].DateFrom/>
+                                <input type="date" @bind=_periodsToRender[tI].DateFrom @bind:after="OnAnyChange">
+                                <input type="date" @bind=_periodsToRender[tI].DateTo @bind:after="OnAnyChange">
 
-                                <input type="date" @bind=_periodsToRender[tI].DateTo/>
-
-                                <input type="color" @bind=@period.SkiaColor>
+                                <input type="color" @bind=@period.SkiaColor @bind:after="OnAnyChange">
                                 @if (_visibleEventNames)
                                 {
-                                    <input class="ms-1" type="text" @bind=@period.NameOfEvent/>
-                                    <label class="mt-1"><input type="checkbox" @bind=@period.Hidden/> Hide name</label>
+                                    <input class="ms-1" type="text" @bind=@period.NameOfEvent
+                                           @bind:after="OnAnyChange"/>
+                                    <label class="mt-1"><input type="checkbox" @bind=@period.Hidden
+                                                               @bind:after="OnAnyChange"/> Hide name</label>
                                 }
                             </li>
                         }

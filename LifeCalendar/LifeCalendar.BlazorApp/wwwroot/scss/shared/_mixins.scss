@@ -1,6 +1,25 @@
 ﻿@mixin transition($props: (color background-color), $duration: 0.3s) {
-    transition-property: $props;
-    transition-duration: $duration;
+   transition-property: $props;
+   transition-duration: $duration;
+}
+
+@mixin rainbowBorder() {
+   background: linear-gradient($color-header-button, $color-header-button) padding-box,
+   linear-gradient(to right, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff) border-box;
+   border: 2px solid transparent;
+   border-radius: 5px;
+   animation: rainbowAnimation 7s linear infinite;
+   background-size: 200% 100%;
+}
+
+@keyframes rainbowAnimation {
+   0% {
+      background-position: 0 0;
+   }
+
+   100% {
+      background-position: 100% 0;
+   }
 }
 
 //Bootstrap 5.3.3 container
@@ -11,41 +30,41 @@
 .container-lg,
 .container-md,
 .container-sm {
-    --bs-gutter-x: 1.5rem;
-    --bs-gutter-y: 0;
-    width: 100%;
-    padding-right: calc(var(--bs-gutter-x) * 0.5);
-    padding-left: calc(var(--bs-gutter-x) * 0.5);
-    margin-right: auto;
-    margin-left: auto;
+   --bs-gutter-x: 1.5rem;
+   --bs-gutter-y: 0;
+   width: 100%;
+   padding-right: calc(var(--bs-gutter-x) * 0.5);
+   padding-left: calc(var(--bs-gutter-x) * 0.5);
+   margin-right: auto;
+   margin-left: auto;
 }
 
 @media (min-width: 576px) {
-    .container-sm, .container {
-        max-width: 540px;
-    }
+   .container-sm, .container {
+      max-width: 540px;
+   }
 }
 
 @media (min-width: 768px) {
-    .container-md, .container-sm, .container {
-        max-width: 720px;
-    }
+   .container-md, .container-sm, .container {
+      max-width: 720px;
+   }
 }
 
 @media (min-width: 992px) {
-    .container-lg, .container-md, .container-sm, .container {
-        max-width: 960px;
-    }
+   .container-lg, .container-md, .container-sm, .container {
+      max-width: 960px;
+   }
 }
 
 @media (min-width: 1200px) {
-    .container-xl, .container-lg, .container-md, .container-sm, .container {
-        max-width: 1140px;
-    }
+   .container-xl, .container-lg, .container-md, .container-sm, .container {
+      max-width: 1140px;
+   }
 }
 
 @media (min-width: 1400px) {
-    .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
-        max-width: 1320px;
-    }
+   .container-xxl, .container-xl, .container-lg, .container-md, .container-sm, .container {
+      max-width: 1320px;
+   }
 }

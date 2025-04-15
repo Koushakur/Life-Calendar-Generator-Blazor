@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
 using Newtonsoft.Json;
 
-//TODO: Confirmation window before saving to db
 //TODO: When rendering event name check if next row has space if the first one does not
 //TODO: Update font/typeface settings for event name rendering
 
@@ -64,6 +63,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
     private float _xSpacing;
     private float _ySpacing;
+
+    private string _updateBtnClass = "";
 
     private SKColor _colorCircle = SKColors.Black;
     private SKColor _colorBackground = SKColors.White;
@@ -121,6 +122,7 @@ public partial class LifeCalendarApp : IAsyncDisposable
                 if (tListFromJson.Count > 0)
                 {
                     _periodsToRender = tListFromJson;
+                    await RenderAllPeriods();
                     StateHasChanged();
                 }
             }
@@ -139,6 +141,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
         if (_periodsToRender.Count != 0)
         {
+            _updateBtnClass = "";
+
             var canvas = Skia.Surface!.Canvas;
 
             Skia.Fill(canvas, _colorBackground); //Background fill
@@ -235,25 +239,23 @@ public partial class LifeCalendarApp : IAsyncDisposable
         }
     }
 
-    // private async Task PartialReRender(int index)
-    // {
-    //     CheckAndSetEarliestYear();
-    //
-    //     RenderSinglePeriod(Skia.Surface!.Canvas, _periodsToRender[index]);
-    //
-    //     await RenderSurfaceToImagePreview(Skia.Surface);
-    // }
-
     private async Task RenderSurfaceToImagePreview(SKSurface surface)
     {
-        using var image = surface.Snapshot();
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var ms = new MemoryStream(data.ToArray());
+        try
+        {
+            using var image = surface.Snapshot();
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var ms = new MemoryStream(data.ToArray());
 
-        var base64Image = Convert.ToBase64String(ms.ToArray());
-        _imgBytes = ms.ToArray();
-        await _jsFuncs!.InvokeVoidAsync("displayBase64Image", _imageContainer,
-            $"data:image/png;base64,{base64Image}");
+            var base64Image = Convert.ToBase64String(ms.ToArray());
+            _imgBytes = ms.ToArray();
+            await _jsFuncs!.InvokeVoidAsync("displayBase64Image", _imageContainer,
+                $"data:image/png;base64,{base64Image}");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
     private void RenderTitle(SKCanvas canvas)
@@ -354,6 +356,25 @@ public partial class LifeCalendarApp : IAsyncDisposable
         }
     }
 
+    private async Task<bool> ConfirmationDialog(string message)
+    {
+        return await JS.InvokeAsync<bool>("confirm", message);
+    }
+
+    private async Task UploadImageToDb()
+    {
+        try
+        {
+            if (await ConfirmationDialog(
+                    "Are you sure you want to upload the preview image to the showcase?\nIt will be publicly visible"))
+                await ImageDb!.AddImageToDb(_imgBytes!);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
     private List<LifePeriod> ReadFromCsvStream(MemoryStream fileStream)
     {
         fileStream.Seek(0, SeekOrigin.Begin);
@@ -418,6 +439,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
         _boundaryRect = new SKRect(_leftBorder, _topBorder, ImgWidth - _rightBorder, ImgHeight - _bottomBorder);
         _xSpacing = (_boundaryRect.Width - _circleRadius * 2) / 51;
         _ySpacing = (_boundaryRect.Height - _circleRadius * 2) / (_rows - 1);
+
+        OnAnyChange();
     }
 
     private void RandomizeAllColors()
@@ -426,6 +449,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
         {
             period.SkiaColor = Skia.RandomColorString();
         }
+
+        OnAnyChange();
     }
 
     private async Task AddBlankLpToList()
@@ -454,6 +479,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
             }
 
             _periodsToRender!.Add(tP);
+
+            OnAnyChange();
 
             await SaveListToSessionStorage();
         }
@@ -514,6 +541,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
                 _colorText = SKColor.Parse(e.Value!.ToString());
                 break;
         }
+
+        OnAnyChange();
     }
 
     private async void OnChangingLocation(object? sender, LocationChangedEventArgs e)
@@ -522,6 +551,14 @@ public partial class LifeCalendarApp : IAsyncDisposable
         if (_periodsToRender.Count <= 0) return;
 
         await SaveListToSessionStorage();
+    }
+
+    private void OnAnyChange()
+    {
+        if (_updateBtnClass == "")
+        {
+            _updateBtnClass = "preview-button";
+        }
     }
 
     #endregion

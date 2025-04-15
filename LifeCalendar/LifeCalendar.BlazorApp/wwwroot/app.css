@@ -1,5 +1,13 @@
 @charset "UTF-8";
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+@keyframes rainbowAnimation {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
 .container,
 .container-fluid,
 .container-xxl,
@@ -42,7 +50,7 @@
   }
 }
 * {
-  font-family: "Atkinson Hyperlegible", sans-serif;
+  font-family: "Atkinson Hyperlegible Next", sans-serif;
 }
 
 a,
@@ -141,6 +149,7 @@ input[type=number] {
 input[type=date] {
   padding-left: 5px;
   height: 28px;
+  max-width: 140px;
 }
 
 input[type=color] {
@@ -211,7 +220,7 @@ body {
   gap: 50px;
 }
 .container .flexbox .previewContainer {
-  outline: 1px solid black;
+  outline: 1px solid #87bfd9;
 }
 .container .flexbox .previewContainer .sample {
   max-width: 20vw;
@@ -219,19 +228,26 @@ body {
 }
 
 .container .appContainer {
-  width: 10%;
+  width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
 .container .appContainer .UI {
   text-wrap: nowrap;
-  margin-right: 50px;
+  margin-right: 10px;
   width: 100%;
 }
 .container .appContainer .UI .border {
   border: 1px solid black;
   outline: none;
   padding: 10px;
+}
+.container .appContainer .UI .preview-button {
+  background: linear-gradient(#E1F1FF, #E1F1FF) padding-box, linear-gradient(to right, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff) border-box;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  animation: rainbowAnimation 7s linear infinite;
+  background-size: 200% 100%;
 }
 .container .appContainer .UI .fontLoad input {
   min-width: 300px;
@@ -251,9 +267,7 @@ body {
   margin: 0;
 }
 .container .appContainer .imageContainer {
-  float: right;
-  margin-top: 2vh;
-  width: 25%;
+  margin: 2vh 0 100px auto;
 }
 .container .appContainer .imageContainer img {
   object-fit: contain;

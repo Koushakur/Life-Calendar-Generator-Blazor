@@ -1,19 +1,23 @@
 ﻿.container {
 
    .appContainer {
-      width: 10%;
+      width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
 
       .UI {
          text-wrap: nowrap;
-         margin-right: 50px;
+         margin-right: 10px;
          width: 100%;
 
          .border {
             border: 1px solid black;
             outline: none;
             padding: 10px;
+         }
+
+         .preview-button {
+            @include rainbowBorder();
          }
 
          .fontLoad {
@@ -41,9 +45,7 @@
       }
 
       .imageContainer {
-         float: right;
-         margin-top: 2vh;
-         width: 25%;
+         margin: 2vh 0 100px auto;
 
          img {
             object-fit: contain;
