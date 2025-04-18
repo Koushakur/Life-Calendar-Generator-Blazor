@@ -1,18 +1,120 @@
 ﻿@page "/howto"
 <PageTitle>How-To</PageTitle>
 
-<div class="container">
+<div class="container howtoContainer">
     <h2>How To</h2>
     <h4>Getting started</h4>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-        pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
-        laborum.</p>
-    <p>The Update Preview button will get a rainbow border after any change is made as a reminder to update</p>
-    <img src="images/GettingStarted.png" alt="Visual aid for quickly getting started"/>
+
+    <p>The first choice is simple, either</p>
+    <p><b>Manually add periods:</b> Use the UI to add time periods one at a time</p>
+    <p>or</p>
+    <p><b>Upload csv file:</b> Start with a text file containing the information</p>
+
+    <p>Either option gives the same end result. The former is easier to get started with, the later is potentially
+        faster and can be done offline</p>
+    <p>For how to format the text file see the <a href="/howto#csv-formatting">CSV section</a></p>
+
+    <!-- Basic -->
+    <h4>Basic options</h4>
+
+    <h6>Add new period</h6>
+    <ul>
+        <li>Adds a blank period with a random color</li>
+        <li>The start date will be the day after the last period in the list, or today's date if it's the first one you
+            add
+        </li>
+    </ul>
+
+    <h6>Create/Update preview</h6>
+    <ul>
+        <li>Creates a preview image of the final result, and then displays the buttons to either</li>
+        <ul>
+            <li><b>Download image:</b> Download the image to your computer</li>
+            <li><b>Upload to showcase:</b> Upload the image to the showcase page</li>
+        </ul>
+        <li>The Update Preview button will get a rainbow border after any change is made as a reminder to update the
+            preview
+        </li>
+    </ul>
+
+    <h6>Title</h6>
+    <ul>
+        <li>The text at the top of the final image</li>
+    </ul>
+
+    <h6>Save list to file</h6>
+    <ul>
+        <li>The list is only kept during your current browsing session, so if you want to continue later you can save
+            the
+            list as a text file that you can then start off with using the 'Upload csv file' option
+        </li>
+    </ul>
+
+    <img class="uiPointers" src="images/GettingStarted.png" alt="Visual aid for quickly getting started"/>
+
+    <!-- Advanced -->
+    <h4>Advanced settings</h4>
+
+    <h6>Total amount of years</h6>
+    <ul>
+        <li>Simply put how many rows will be on the final image</li>
+    </ul>
+
+    <h6>Show week numbers</h6>
+    <ul>
+        <li>Numbers 1-52 on top of the columns</li>
+    </ul>
+
+    <h6>Show year numbers</h6>
+    <ul>
+        <li>Whether to show the years on the left side of the image</li>
+        <li>If you do not want them shown you likely also want to set the left and right <a
+                href="/howto#margin">margin</a> to be the same in the
+        </li>
+    </ul>
+
+    <h6>Show event names</h6>
+    <ul>
+        <li>Makes the option to add a name to the period appear</li>
+        <li>Can be selectively hidden individually with the 'Hide name' checkbox on each entry</li>
+        <li>If the name is too long to fit in the available space it will be automatically hidden</li>
+    </ul>
+
+    <h6>Circle styling</h6>
+    <ul>
+        <li>Changes color, radius (size) and stroke width (thickness) of the circles</li>
+    </ul>
+
+    <h6>Document styling</h6>
+    <ul>
+        <li>Change background and text color</li>
+    </ul>
+
+    <a id="margin"/>
+    <h6>Margin</h6>
+    <ul>
+        <li>The margin is the empty space around the main part of the image, the circles</li>
+        <li>It does not take any text into account</li>
+        <li>If you want the final image to be without the years being displayed it would be recommended to set the Left
+            and Right margin to be the same
+        </li>
+    </ul>
+
+    <h6>Change font</h6>
+    <ul>
+        <li>Load a new font for all text</li>
+        <li>The font needs to be available on <a href="https://fonts.google.com/" target="_blank">Google Fonts</a></li>
+    </ul>
+
+    <h6>Randomize all colors</h6>
+    <ul>
+        <li>Gives all periods a new random color</li>
+    </ul>
+
 
     <br/>
+
+    <!-- CSV -->
     <a id="csv-formatting"/>
     <h4>CSV File Formatting</h4>
     <p>A CSV file (Comma-Separated Values) is a simple type of file used to store data, much like a Excel spreadsheet.
@@ -51,7 +153,7 @@
     </ul>
 
     <p>A more complete example of a file:</p>
-    <div class="unformattedBox">
+    <div id="bottommostElement" class="unformattedBox">
         DateFrom,DateTo,Color,NameOfEvent<br/>
         1982-08-09,1990-05-29,#4F679E,Youth<br/>
         1990-05-30,2000-08-31,,Elementary school<br/>

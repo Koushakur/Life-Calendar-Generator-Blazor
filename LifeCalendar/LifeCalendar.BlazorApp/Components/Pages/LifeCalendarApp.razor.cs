@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using Blazored.SessionStorage;
 using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
@@ -10,9 +11,6 @@ using LifeCalendar.BlazorApp.Data;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
 using Newtonsoft.Json;
-
-//TODO: When rendering event name check if next row has space if the first one does not
-//TODO: Update font/typeface settings for event name rendering
 
 namespace LifeCalendar.BlazorApp.Components.Pages;
 
@@ -264,13 +262,10 @@ public partial class LifeCalendarApp : IAsyncDisposable
 
         var yPos = _boundaryRect.Top - 65;
         var xPos = _boundaryRect.MidX;
-        var tOldSize = Skia._defaultFont.Size;
+        var tFont = Skia.CopyOfDefaultFont();
+        tFont.Size = 75;
 
-        Skia._defaultFont.Size = 75;
-
-        Skia.DrawText(canvas, _title, xPos, yPos, alignment: SKTextAlign.Center);
-
-        Skia._defaultFont.Size = tOldSize;
+        Skia.DrawText(canvas, _title, xPos, yPos, alignment: SKTextAlign.Center, font: tFont);
     }
 
     private void RenderWeekNumbers(SKCanvas canvas)
@@ -307,44 +302,72 @@ public partial class LifeCalendarApp : IAsyncDisposable
     {
         if (!_visibleEventNames) return;
 
+        var tFont = Skia.CopyOfDefaultFont();
+        tFont.Size = 40;
+
+        using var tStrokePaint = new SKPaint();
+        tStrokePaint.Color = SKColors.White;
+        tStrokePaint.IsAntialias = true;
+        tStrokePaint.Style = SKPaintStyle.Stroke;
+        tStrokePaint.StrokeWidth = 4;
+
         var tCulture = CultureInfo.InvariantCulture;
 
-        foreach (var period in _periodsToRender)
+        foreach (var period in _periodsToRender.Where(period => !period.Hidden))
         {
-            if (!period.Hidden)
-                continue;
-
-            Skia._defaultFont.MeasureText(period.NameOfEvent, out var textMeasureRect);
+            tFont.MeasureText(period.NameOfEvent, out var textMeasureRect);
             var centeringOffset = ((_circleRadius * 2) - textMeasureRect.Height) / 2;
 
             var tFromWeek =
                 tCulture.Calendar.GetWeekOfYear(period.DateFrom, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-            // var tToWeek =
-            //     tCulture.Calendar.GetWeekOfYear(period.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+            var tToWeek =
+                tCulture.Calendar.GetWeekOfYear(period.DateTo, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
 
             float startRow = period.DateFrom.Year - _earliestYear;
-
-            var align = SKTextAlign.Left;
 
             // Measure name width
             // Do math to see if its FromWeek is too late to contain the text
             var spaceForName = ((52 - tFromWeek) * (_circleRadius * 2) + _xSpacing) + _circleRadius;
 
+            var xPos = _boundaryRect.Left + _circleRadius + (_xSpacing * (tFromWeek - 1));
+
             if (textMeasureRect.Width > spaceForName)
             {
-                continue;
+                switch (period.DateTo.Year - period.DateFrom.Year)
+                {
+                    //Not wide enough for first row, but if the next year is completely filled assume it fits 
+                    case >= 2:
+                        startRow += 1;
+                        xPos = _boundaryRect.Left + _circleRadius;
+                        break;
+
+                    //Period ends before the end of next year, check width for the following year
+                    case 1:
+                    {
+                        spaceForName = (tToWeek * (_circleRadius * 2) + _xSpacing) + _circleRadius;
+                        if (textMeasureRect.Width < spaceForName)
+                        {
+                            startRow += 1;
+                            xPos = _boundaryRect.Left + _circleRadius;
+                        }
+                        else
+                            continue;
+
+                        break;
+                    }
+                }
             }
 
             var yPos = _boundaryRect.Top + (_circleRadius * 2) - centeringOffset + (_ySpacing * (startRow));
-            var xPos = _boundaryRect.Left + _circleRadius + (_xSpacing * (tFromWeek - 1));
 
-            Skia.DrawText(canvas, period.NameOfEvent, xPos, yPos, alignment: align);
+            Skia.DrawText(canvas, period.NameOfEvent, xPos, yPos, tStrokePaint, SKTextAlign.Left, tFont);
+            Skia.DrawText(canvas, period.NameOfEvent, xPos, yPos, null!, SKTextAlign.Left, tFont);
         }
     }
 
     #endregion
 
-    private async Task DownloadToFile()
+    private async Task DownloadImageToFile()
     {
         if (_jsFuncs != null && _imgBytes != null)
         {
@@ -352,6 +375,27 @@ public partial class LifeCalendarApp : IAsyncDisposable
                 "downloadFileFromStream",
                 $"{(_title != "" ? _title : "Life Calendar")}.png",
                 new DotNetStreamReference(new MemoryStream(_imgBytes))
+            );
+        }
+    }
+
+    private async Task DownloadListToFile()
+    {
+        if (_jsFuncs != null && _periodsToRender.Count > 0)
+        {
+            var stringToSave = "DateFrom,DateTo,Color,NameOfEvent\n";
+            foreach (var period in _periodsToRender)
+            {
+                stringToSave +=
+                    $"{period.DateFrom:yyyy-MM-dd},{period.DateTo:yyyy-MM-dd},{period.SkiaColor},{period.NameOfEvent}\n";
+            }
+
+            var bytesToSave = Encoding.UTF8.GetBytes(stringToSave);
+
+            await _jsFuncs!.InvokeVoidAsync(
+                "downloadFileFromStream",
+                $"{(_title != "" ? _title : "Life Calendar")}_{DateTime.Now:yyyy-MM-dd}.txt",
+                new DotNetStreamReference(new MemoryStream(bytesToSave))
             );
         }
     }
@@ -419,8 +463,8 @@ public partial class LifeCalendarApp : IAsyncDisposable
     {
         if (week == 53)
             return month == 1 ? 1 : 52;
-        else
-            return week;
+
+        return week;
     }
 
     private void CheckAndSetEarliestYear()
@@ -584,6 +628,34 @@ public partial class LifeCalendarApp : IAsyncDisposable
     private void InputOptionChanged(ChangeEventArgs e)
     {
         _inputOption = e.Value!.ToString()!;
+    }
+
+    private async Task ResetAdvancedToDefaults()
+    {
+        if (await ConfirmationDialog("Are you sure you want to reset all advanced settings to default?"))
+        {
+            _rows = 80;
+            _visibleWeekNumbers = true;
+            _visibleYearNumbers = true;
+            _visibleEventNames = false;
+
+            _colorCircle = SKColors.Black;
+            _circleRadius = 10;
+            _strokeWidth = 2;
+            _colorBackground = SKColors.White;
+            _colorText = SKColors.Black;
+
+            _topBorder = 150;
+            _leftBorder = 100;
+            _rightBorder = 50;
+            _bottomBorder = 50;
+
+            _fontName = "Atkinson Hyperlegible Next";
+            if (Skia._defaultFont.Typeface.FamilyName != _fontName)
+                await Skia.FetchFontFromGoogle(_fontName);
+
+            UpdateBoundaryRect();
+        }
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

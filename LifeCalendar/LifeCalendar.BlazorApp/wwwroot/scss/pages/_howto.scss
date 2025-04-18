@@ -1,1 +1,15 @@
-﻿
+﻿.container {
+
+   .uiPointers {
+      border: 1px solid $color-header-background;
+      border-radius: 15px;
+
+      max-width: 600px;
+      width: 50vw;
+      min-width: 300px;
+   }
+}
+
+.howtoContainer {
+   margin-bottom: 200px;
+}

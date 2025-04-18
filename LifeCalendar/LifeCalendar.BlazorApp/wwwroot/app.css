@@ -74,6 +74,11 @@ h2:focus {
   outline: none;
 }
 
+h4 {
+  margin-top: 30px;
+  text-decoration: underline;
+}
+
 .header-link {
   color: black;
   border-radius: 5px;
@@ -242,9 +247,12 @@ body {
   outline: none;
   padding: 10px;
 }
+.container .appContainer .UI #buttonUpdatePreview {
+  Border: 2px solid #87bfd9;
+}
 .container .appContainer .UI .preview-button {
   background: linear-gradient(#E1F1FF, #E1F1FF) padding-box, linear-gradient(to right, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff) border-box;
-  border: 2px solid transparent;
+  border: 2px solid transparent !important;
   border-radius: 5px;
   animation: rainbowAnimation 7s linear infinite;
   background-size: 200% 100%;
@@ -275,6 +283,18 @@ body {
   max-height: 70vh;
   outline: 1px solid #87bfd9;
   padding: 1px;
+}
+
+.container .uiPointers {
+  border: 1px solid #87bfd9;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 50vw;
+  min-width: 300px;
+}
+
+.howtoContainer {
+  margin-bottom: 200px;
 }
 
 .container .imageGrid {

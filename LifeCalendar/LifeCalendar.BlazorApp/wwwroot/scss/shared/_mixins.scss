@@ -6,7 +6,7 @@
 @mixin rainbowBorder() {
    background: linear-gradient($color-header-button, $color-header-button) padding-box,
    linear-gradient(to right, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff, #0099ff, #00ff00, #ff3399, #6666ff) border-box;
-   border: 2px solid transparent;
+   border: 2px solid transparent !important;
    border-radius: 5px;
    animation: rainbowAnimation 7s linear infinite;
    background-size: 200% 100%;

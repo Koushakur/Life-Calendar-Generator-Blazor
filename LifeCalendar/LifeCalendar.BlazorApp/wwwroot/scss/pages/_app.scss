@@ -16,6 +16,10 @@
             padding: 10px;
          }
 
+         #buttonUpdatePreview {
+            Border: 2px solid $color-header-background;
+         }
+
          .preview-button {
             @include rainbowBorder();
          }

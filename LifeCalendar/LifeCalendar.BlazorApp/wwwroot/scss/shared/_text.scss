@@ -26,6 +26,11 @@ h2 {
    }
 }
 
+h4 {
+   margin-top: 30px;
+   text-decoration: underline;
+}
+
 .header-link {
    color: black;
    border-radius: 5px;
@@ -70,7 +75,6 @@ h2 {
 .unformattedBox {
    outline: 1px solid rgba(0, 0, 0, 0.5);
    width: fit-content;
-   //white-space: pre;
    background-color: rgba(0, 0, 0, 0.1);
    padding: 10px;
    text-align: left;

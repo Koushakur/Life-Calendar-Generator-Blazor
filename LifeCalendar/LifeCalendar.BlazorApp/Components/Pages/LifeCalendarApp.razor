@@ -38,13 +38,13 @@
             {
                 <br/>
                 <div class="mt-3" style="display: flex; gap: 5px;">
-                    <button class=@_updateBtnClass @onclick="RenderAllPeriods">
+                    <button id="buttonUpdatePreview" class=@_updateBtnClass @onclick="RenderAllPeriods">
                         @(_imgBytes == null ? "Create preview" : "Update preview")
                     </button>
 
                     @if (_imgBytes != null)
                     {
-                        <button @onclick="DownloadToFile">Download image</button>
+                        <button @onclick="DownloadImageToFile">Download image</button>
                         <button @onclick="async () => { await UploadImageToDb(); }">
                             Upload to showcase
                         </button>
@@ -60,6 +60,7 @@
                 <button class="mt-3 mb-1" @onclick="() => _showAdvancedOptions = !_showAdvancedOptions">
                     @(_showAdvancedOptions ? "Hide Advanced Options" : "Show Advanced Options")
                 </button>
+                <button @onclick="async () => await DownloadListToFile()">Save list to file</button>
 
                 <!-- Advanced options -->
                 @if (_showAdvancedOptions)
@@ -128,7 +129,9 @@
                             }
                         </div>
 
-                        <button class="mt-3" @onclick="RandomizeAllColors">Randomize All Colors</button>
+                        <button class="mt-3" @onclick="RandomizeAllColors">Randomize All Period Colors</button>
+                        <button class="mt-3" @onclick="ResetAdvancedToDefaults">Reset advanced settings to default
+                        </button>
                     </div>
                 }
 
@@ -144,7 +147,7 @@
                                 <!-- Sorting buttons -->
                                 <div class="ButtonSortRemoveContainer">
                                     <button
-                                        @onclick="async () => { _periodsToRender.RemoveAt(tI); await SaveListToSessionStorage(); }"
+                                        @onclick="async () => { _periodsToRender.RemoveAt(tI); await SaveListToSessionStorage(); OnAnyChange(); }"
                                         class="ButtonSortRemove">
                                         -
                                     </button>
@@ -152,11 +155,11 @@
                                     @if (tI > 0)
                                     {
                                         <button class="ButtonSortRemove"
-                                                @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); }">
+                                                @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(0, tLP); OnAnyChange(); }">
                                             &UpArrowBar;
                                         </button>
                                         <button class="ButtonSortRemove"
-                                                @onclick="() => { SwapPeriods(tI, tI - 1); }">
+                                                @onclick="() => { SwapPeriods(tI, tI - 1); OnAnyChange(); }">
                                             &uarr;
                                         </button>
                                     }
@@ -172,11 +175,11 @@
                                     @if (tI < _periodsToRender.Count - 1)
                                     {
                                         <button class="ButtonSortRemove"
-                                                @onclick="() => { SwapPeriods(tI, tI + 1); }">
+                                                @onclick="() => { SwapPeriods(tI, tI + 1); OnAnyChange(); }">
                                             &darr;
                                         </button>
                                         <button class="ButtonSortRemove"
-                                                @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); }">
+                                                @onclick="() => { var tLP = _periodsToRender[tI]; _periodsToRender.RemoveAt(tI); _periodsToRender.Insert(_periodsToRender.Count, tLP); OnAnyChange(); }">
                                             &DownArrowBar;
                                         </button>
                                     }

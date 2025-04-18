@@ -144,4 +144,14 @@ public class SkiaService
         var rnd = new Random();
         return SKColor.FromHsl(rnd.Next(0, 360), rnd.Next(40, 80), rnd.Next(40, 90));
     }
+
+    public SKFont CopyOfDefaultFont()
+    {
+        var font = new SKFont(
+            _defaultFont.Typeface,
+            _defaultFont.Size,
+            _defaultFont.ScaleX,
+            _defaultFont.SkewX);
+        return font;
+    }
 }
